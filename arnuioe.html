@@ -1272,22 +1272,43 @@ function renderScheduleList() {
       ? events.map(e => renderEventCard(e, calSelectedDate)).join('')
       : '<div class="empty-text">이 날은 일정이 없어요</div>';
   } else {
-    // 전체 일정 (오늘 이후) - 반복 일정은 항상 포함
-    const all = DB.events
-      .filter(e => {
-        if (selectedCatFilter && e.catId !== selectedCatFilter) return false;
-        if (e.repeatType) return true; // 반복 일정은 항상 표시
+    // 전체 일정 (오늘 이후) - 반복 일정은 30일치 개별 날짜로 펼치기
+    const items = []; // { e, dateStr }
+
+    // 날짜 범위: 오늘 ~ 30일 후
+    const rangeEnd = new Date(today + 'T00:00:00');
+    rangeEnd.setDate(rangeEnd.getDate() + 30);
+    const rangeEndStr = localDateStr(rangeEnd);
+
+    DB.events.forEach(e => {
+      if (selectedCatFilter && e.catId !== selectedCatFilter) return;
+      if (e.repeatType) {
+        // 30일 내 모든 발생일 열거
+        let cur = today;
+        while (cur <= rangeEndStr) {
+          const next = getNextOccurrence(e, cur);
+          if (!next || next > rangeEndStr) break;
+          items.push({ e, dateStr: next });
+          // 다음 탐색은 next+1일부터
+          const d = new Date(next + 'T00:00:00');
+          d.setDate(d.getDate() + 1);
+          cur = localDateStr(d);
+        }
+      } else {
         const end = e.endDate || e.startDate;
-        return end >= today;
-      })
-      .sort((a, b) => {
-        const aDate = a.repeatType ? getNextOccurrence(a, today) : (a.endDate || a.startDate);
-        const bDate = b.repeatType ? getNextOccurrence(b, today) : (b.endDate || b.startDate);
-        return aDate.localeCompare(bDate) || a.startDate.localeCompare(b.startDate);
-      });
+        if (end >= today) items.push({ e, dateStr: null });
+      }
+    });
+
+    items.sort((a, b) => {
+      const aDate = a.dateStr || a.e.endDate || a.e.startDate;
+      const bDate = b.dateStr || b.e.endDate || b.e.startDate;
+      return aDate.localeCompare(bDate);
+    });
+
     titleEl.textContent = 'Schedule';
-    listEl.innerHTML = all.length
-      ? all.map(e => renderEventCard(e, e.repeatType ? getNextOccurrence(e, today) : null)).join('')
+    listEl.innerHTML = items.length
+      ? items.map(({ e, dateStr }) => renderEventCard(e, dateStr)).join('')
       : '<div class="empty-text">다가오는 일정이 없어요</div>';
   }
 }
@@ -1307,30 +1328,31 @@ function getPeriodPos(dateStr, e) {
   return 'middle';
 }
 
+function localDateStr(d) {
+  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+}
+
 function getNextOccurrence(e, fromStr) {
-  // fromStr 이후 가장 가까운 반복 발생일 반환 (없으면 null)
   const from = new Date(fromStr + 'T00:00:00');
   const start = new Date(e.startDate + 'T00:00:00');
   const base = from < start ? start : from;
 
   if (e.repeatType === 'monthly') {
-    // 이번 달 or 다음 달의 같은 날
     let d = new Date(base.getFullYear(), base.getMonth(), start.getDate());
     if (d < base) d = new Date(base.getFullYear(), base.getMonth() + 1, start.getDate());
-    return d.toISOString().slice(0, 10);
+    return localDateStr(d);
   }
   if (e.repeatType === 'yearly') {
     let d = new Date(base.getFullYear(), start.getMonth(), start.getDate());
     if (d < base) d = new Date(base.getFullYear() + 1, start.getMonth(), start.getDate());
-    return d.toISOString().slice(0, 10);
+    return localDateStr(d);
   }
   if (e.repeatType === 'weekly' || e.repeatType === 'biweekly') {
     const days = e.repeatDays || [];
     if (!days.length) return e.startDate;
-    // 앞으로 14일 내에서 탐색
     for (let i = 0; i <= 14; i++) {
       const d = new Date(base); d.setDate(base.getDate() + i);
-      const ds = d.toISOString().slice(0, 10);
+      const ds = localDateStr(d);
       if ((e.excludeDates || []).includes(ds)) continue;
       if (e.repeatType === 'weekly' && days.includes(d.getDay())) return ds;
       if (e.repeatType === 'biweekly') {
