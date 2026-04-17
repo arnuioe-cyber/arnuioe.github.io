@@ -102,11 +102,11 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
 .cal-nav-btns{display:flex;gap:8px}
 .cal-nav-btn{width:24px;height:24px;border-radius:50%;border:none;background:none;cursor:pointer;font-size:16px;color:var(--text-mid);display:flex;align-items:center;justify-content:center}
 
-.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);padding:4px 12px;margin-top:16px}
-.cal-dow span{text-align:center;font-size:11px;font-weight:600;color:var(--text-dark);padding:4px 0}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);padding:4px 12px;margin-top:8px}
+.cal-dow span{text-align:center;font-size:11px;font-weight:600;color:var(--text-dark);padding:2px 0}
 
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 12px 8px;row-gap:2px}
-.cal-cell{display:flex;flex-direction:column;align-items:center;min-height:46px;cursor:pointer;padding:2px 1px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 12px 4px;row-gap:0}
+.cal-cell{display:flex;flex-direction:column;align-items:center;min-height:38px;cursor:pointer;padding:1px 1px}
 .cal-cell:active .cal-num{background:var(--chip)}
 .cal-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--text-dark);transition:.15s}
 .cal-cell.other .cal-num{color:#c8c4be}
@@ -313,7 +313,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
     <!-- 고정 영역 -->
     <div style="flex-shrink:0">
       <!-- 카테고리 칩 -->
-      <div class="chips" style="padding:16px 16px 12px" id="catChips"></div>
+      <div class="chips" style="padding:16px 16px 8px" id="catChips"></div>
       <!-- 달력 요일 헤더 + 그리드 (scroll-collapsible) -->
       <div id="calCollapsible">
         <div class="cal-dow">
@@ -325,7 +325,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
     </div>
     <!-- Schedule 타이틀 고정 -->
     <div style="flex-shrink:0">
-      <div class="section-title" id="scheduleTitle" style="padding-top:12px">Schedule</div>
+      <div class="section-title" id="scheduleTitle" style="padding-top:14px">Schedule</div>
     </div>
     <!-- 스크롤 영역 -->
     <div id="calScrollArea" style="flex:1;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
@@ -337,6 +337,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
   <div class="screen" id="s-diet">
     <div class="screen-inner">
       <div class="date-scroll" id="dietDateScroll" style="padding-top:8px"></div>
+      <div style="height:16px"></div>
       <div class="diet-banner">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div class="diet-banner-top" style="margin-bottom:0">Today's Calories</div>
@@ -355,6 +356,9 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
           <div class="macro" onclick="openWaterModal()" style="cursor:pointer"><div class="macro-val" id="mWater">0L</div><div class="macro-lbl">Water</div></div>
         </div>
       </div>
+      <div style="height:12px"></div>
+      <div id="fastingCard" style="margin:0 16px 4px;background:var(--bg);border-radius:var(--radius-lg);padding:14px 18px;border:1.5px solid var(--divider)"></div>
+      <div style="height:20px"></div>
       <div id="mealSections"></div>
     </div>
   </div>
@@ -368,6 +372,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
     <!-- 스크롤 영역 -->
     <div style="flex:1;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
       <div style="padding-bottom:20px">
+      <div style="height:16px"></div>
 
         <!-- apple -->
         <div class="card">
@@ -431,6 +436,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
     <!-- 날짜 롤러: 스크롤 고정 -->
     <div style="flex-shrink:0;background:var(--bg)">
       <div class="date-scroll" id="dateScroll" style="padding-top:8px"></div>
+      <div style="height:28px"></div>
     </div>
     <!-- 타임라인: 독립 스크롤 -->
     <div style="flex:1;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
@@ -563,6 +569,18 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
   </div>
 </div>
 
+<!-- 단식 설정 모달 -->
+<div class="modal-overlay" id="m-fasting" onclick="closeModal('m-fasting',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">Fasting Timer</div>
+    <div class="modal-label">Goal Hours</div>
+    <input class="input" type="number" id="fastGoalInput" min="1" max="72" placeholder="예: 16" style="margin-bottom:16px">
+    <div class="modal-label">Start Time</div>
+    <input class="input" type="datetime-local" id="fastStartInput" style="margin-bottom:16px">
+    <button class="btn-primary" onclick="startFasting()">Start Fasting</button>
+  </div>
+</div>
+
 <!-- 식단 추가 모달 -->
 <div class="modal-overlay" id="m-meal" onclick="closeModal('m-meal',event)">
   <div class="modal-sheet" style="padding:0;display:flex;flex-direction:column;overflow:hidden">
@@ -593,6 +611,20 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
     </div>
     <div style="padding:12px 24px;padding-bottom:calc(12px + env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--chip)">
       <button class="btn-primary" onclick="saveMeal()" style="width:100%;padding:14px">save</button>
+    </div>
+  </div>
+</div>
+
+<!-- 식단 타입 선택 모달 -->
+<div class="modal-overlay" id="m-meal-pick" onclick="closeModal('m-meal-pick',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">what meal?</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="closeModal('m-meal-pick');openMealModal('breakfast','Breakfast')" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">🍳 Breakfast</button>
+      <button onclick="closeModal('m-meal-pick');openMealModal('lunch','Lunch')" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">🍜 Lunch</button>
+      <button onclick="closeModal('m-meal-pick');openMealModal('dinner','Dinner')" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">🥗 Dinner</button>
+      <button onclick="closeModal('m-meal-pick');openMealModal('snack','Snack')" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">🍎 Snack</button>
+      <button onclick="closeModal('m-meal-pick');openMealModal('latenight','Late Night')" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">🍕 Late Night</button>
     </div>
   </div>
 </div>
@@ -1031,6 +1063,7 @@ function getDefaultDB() {
     meals: [],          // { id, name, cal, carbs, prot, fat, type, date }
     calorieGoal: 1800,
     water: {},          // date -> L
+    fasting: { startTime: null, goalHours: 16, active: false },
     diary: {},          // date -> { ootd, cam, finances[], tp, fw, vlogs[] }
     schedule: [],       // { id, title, startHour, endHour, color, date }
     routines: [
@@ -1624,6 +1657,7 @@ function selectDietDate(ds) {
 
 function renderDiet() {
   renderDietDateScroll();
+  renderFastingCard();
   const date = dietSelectedDate;
   const meals = DB.meals.filter(m => m.date === date);
   const total = meals.reduce((s,m) => s + (m.cal||0), 0);
@@ -1641,31 +1675,37 @@ function renderDiet() {
   document.getElementById('mFat').textContent = fat.toFixed(1) + 'g';
   document.getElementById('mWater').textContent = water.toFixed(1) + 'L';
 
-  let html = '<div class="meal-scroll">';
-  mealTypes.forEach(mt => {
-    const items = meals.filter(m => m.type === mt.id);
-    const mtCal = items.reduce((s,m) => s + (m.cal||0), 0);
-    html += `<div class="meal-card">
-      <div class="meal-card-hdr">
-        <span class="meal-card-title">${mt.label}</span>
-        ${mtCal ? `<span class="meal-cal-badge">${mtCal} kcal</span>` : ''}
-      </div>
-      ${items.map(m => `
-        <div class="meal-photo-item" onclick="openMealEditModal('${m.id}')" style="cursor:pointer">
-          ${m.photo
-            ? `<img src="${m.photo}">`
-            : `<div class="meal-photo-emoji">${mealEmoji(mt.id)}</div>`}
-          <div class="meal-photo-info">
-            <div class="meal-photo-name">${m.name}</div>
-            <div class="meal-photo-cal">${m.cal} kcal${m.time?' · '+m.time:''}</div>
-          </div>
-          <button class="meal-del-btn" onclick="event.stopPropagation();delMeal('${m.id}')">×</button>
+  const filledTypes = mealTypes.filter(mt => meals.some(m => m.type === mt.id));
+  let html = '';
+  if (filledTypes.length === 0) {
+    html = '<div class="empty-text" style="margin-top:20px">아직 오늘 식단이 없어요<br>+ 버튼으로 추가해봐!</div>';
+  } else {
+    html = '<div class="meal-scroll">';
+    filledTypes.forEach(mt => {
+      const items = meals.filter(m => m.type === mt.id);
+      const mtCal = items.reduce((s,m) => s + (m.cal||0), 0);
+      html += `<div class="meal-card">
+        <div class="meal-card-hdr">
+          <span class="meal-card-title">${mt.label}</span>
+          ${mtCal ? `<span class="meal-cal-badge">${mtCal} kcal</span>` : ''}
         </div>
-      `).join('')}
-      <button class="add-btn" onclick="openMealModal('${mt.id}','${mt.label}')">+ add</button>
-    </div>`;
-  });
-  html += '</div>';
+        ${items.map(m => `
+          <div class="meal-photo-item" onclick="openMealEditModal('${m.id}')" style="cursor:pointer">
+            ${m.photo
+              ? `<img src="${m.photo}">`
+              : `<div class="meal-photo-emoji">${mealEmoji(mt.id)}</div>`}
+            <div class="meal-photo-info">
+              <div class="meal-photo-name">${m.name}</div>
+              <div class="meal-photo-cal">${m.cal} kcal${m.time?' · '+m.time:''}</div>
+            </div>
+            <button class="meal-del-btn" onclick="event.stopPropagation();delMeal('${m.id}')">×</button>
+          </div>
+        `).join('')}
+        <button class="add-btn" onclick="openMealModal('${mt.id}','${mt.label}')">+ add</button>
+      </div>`;
+    });
+    html += '</div>';
+  }
   document.getElementById('mealSections').innerHTML = html;
 }
 
@@ -1686,6 +1726,99 @@ function saveWater() {
   DB.water[dietSelectedDate] = val;
   saveDB(); renderDiet();
   closeModal('m-water');
+}
+
+// ── 단식 타이머 ──
+let _fastingTimer = null;
+
+function renderFastingCard() {
+  const f = DB.fasting || { active: false, goalHours: 16, startTime: null };
+  const card = document.getElementById('fastingCard');
+  if (!card) return;
+
+  if (!f.active) {
+    card.style.borderColor = 'var(--divider)';
+    card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-mid)">Fasting</div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:1px">Not fasting</div>
+      </div>
+      <button onclick="openFastingModal()" style="background:var(--primary);color:white;border:none;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer">Start</button>
+    </div>`;
+    if (_fastingTimer) { clearInterval(_fastingTimer); _fastingTimer = null; }
+    return;
+  }
+  card.style.borderColor = 'var(--primary)';
+
+  const goalMs = f.goalHours * 3600000;
+  const startMs = new Date(f.startTime).getTime();
+
+  function update() {
+    const elapsed = Date.now() - startMs;
+    const pct = Math.min(100, elapsed / goalMs * 100);
+    const elapsedH = Math.floor(elapsed / 3600000);
+    const elapsedM = Math.floor((elapsed % 3600000) / 60000);
+    const done = elapsed >= goalMs;
+    const color = done ? '#4CAF50' : 'var(--primary)';
+    const remH = Math.max(0, Math.floor((goalMs - elapsed) / 3600000));
+    const remM = Math.max(0, Math.floor(((goalMs - elapsed) % 3600000) / 60000));
+
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--text-mid)">Fasting · ${f.goalHours}h goal</div>
+        <div style="display:flex;gap:10px">
+          <button onclick="openFastingModal()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--primary)">edit</button>
+          <button onclick="stopFasting()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-light)">stop</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+        <div style="font-size:20px;font-weight:800;color:var(--text-dark);letter-spacing:-0.5px">${p2(elapsedH)}:${p2(elapsedM)}</div>
+        <div style="font-size:11px;color:${color};font-weight:600">${done ? 'Goal! 🎉' : `${remH}h ${remM}m left`}</div>
+      </div>
+      <div style="height:5px;background:var(--chip);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:3px"></div>
+      </div>`;
+  }
+
+  update();
+  if (_fastingTimer) clearInterval(_fastingTimer);
+  _fastingTimer = setInterval(update, 1000);
+}
+
+function openFastingModal() {
+  if (!DB.fasting) DB.fasting = { active: false, goalHours: 16, startTime: null };
+  document.getElementById('fastGoalInput').value = DB.fasting.goalHours || 16;
+  const baseTime = (DB.fasting.active && DB.fasting.startTime)
+    ? new Date(DB.fasting.startTime) : new Date();
+  const local = `${baseTime.getFullYear()}-${p2(baseTime.getMonth()+1)}-${p2(baseTime.getDate())}T${p2(baseTime.getHours())}:${p2(baseTime.getMinutes())}`;
+  document.getElementById('fastStartInput').value = local;
+  const btn = document.querySelector('#m-fasting .btn-primary');
+  if (btn) btn.textContent = DB.fasting.active ? 'Update' : 'Start Fasting';
+  openModal('m-fasting');
+}
+
+function startFasting() {
+  const startVal = document.getElementById('fastStartInput').value;
+  const goalH = parseInt(document.getElementById('fastGoalInput').value);
+  if (!startVal) return alert('시작 시간을 입력해줘!');
+  if (!goalH || goalH < 1) return alert('목표 시간을 입력해줘!');
+  if (!DB.fasting) DB.fasting = {};
+  DB.fasting.goalHours = goalH;
+  DB.fasting.active = true;
+  DB.fasting.startTime = new Date(startVal).toISOString();
+  saveDB();
+  closeModal('m-fasting');
+  renderFastingCard();
+}
+
+
+function stopFasting() {
+  if (!confirm('단식을 종료할까?')) return;
+  DB.fasting.active = false;
+  DB.fasting.startTime = null;
+  saveDB();
+  if (_fastingTimer) { clearInterval(_fastingTimer); _fastingTimer = null; }
+  renderFastingCard();
 }
 
 function openMealModal(type, label) {
@@ -2900,7 +3033,7 @@ function saveTodo() {
 // ══════════════════════════════════════════
 function fabAction() {
   if (curTab === 'calendar') { openAddEventModal(); }
-  else if (curTab === 'diet') { openMealModal('lunch','☀️ 식단'); }
+  else if (curTab === 'diet') { openModal('m-meal-pick'); }
   else if (curTab === 'diary') { openDiaryPicker(); }
   else if (curTab === 'schedule') { openSchModal(); }
   else if (curTab === 'routine') { openRoutineModal(); }
@@ -2910,9 +3043,10 @@ function fabAction() {
 function openAddEventModal() {
   editEventId = null;
   sv('evTitle', '');
-  evPickerYear = new Date().getFullYear();
-  evPickerMonth = new Date().getMonth();
-  evPickerDates = new Set([todayStr()]);
+  const initDate = calSelectedDate || todayStr();
+  evPickerYear = new Date(initDate + 'T00:00:00').getFullYear();
+  evPickerMonth = new Date(initDate + 'T00:00:00').getMonth();
+  evPickerDates = new Set([initDate]);
   evRepeatDays = new Set();
   renderEvPicker();
   document.getElementById('evCatChips').innerHTML = DB.categories.map((c,i) =>
