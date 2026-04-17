@@ -1281,14 +1281,13 @@ function renderScheduleList() {
         return end >= today;
       })
       .sort((a, b) => {
-        // 반복 일정은 오늘 기준 다음 발생일 기준으로 정렬
-        const aDate = a.repeatType ? today : (a.endDate || a.startDate);
-        const bDate = b.repeatType ? today : (b.endDate || b.startDate);
+        const aDate = a.repeatType ? getNextOccurrence(a, today) : (a.endDate || a.startDate);
+        const bDate = b.repeatType ? getNextOccurrence(b, today) : (b.endDate || b.startDate);
         return aDate.localeCompare(bDate) || a.startDate.localeCompare(b.startDate);
       });
     titleEl.textContent = 'Schedule';
     listEl.innerHTML = all.length
-      ? all.map(e => renderEventCard(e, e.repeatType ? today : null)).join('')
+      ? all.map(e => renderEventCard(e, e.repeatType ? getNextOccurrence(e, today) : null)).join('')
       : '<div class="empty-text">다가오는 일정이 없어요</div>';
   }
 }
@@ -1306,6 +1305,41 @@ function getPeriodPos(dateStr, e) {
   if (isStart) return 'start';
   if (isEnd)   return 'end';
   return 'middle';
+}
+
+function getNextOccurrence(e, fromStr) {
+  // fromStr 이후 가장 가까운 반복 발생일 반환 (없으면 null)
+  const from = new Date(fromStr + 'T00:00:00');
+  const start = new Date(e.startDate + 'T00:00:00');
+  const base = from < start ? start : from;
+
+  if (e.repeatType === 'monthly') {
+    // 이번 달 or 다음 달의 같은 날
+    let d = new Date(base.getFullYear(), base.getMonth(), start.getDate());
+    if (d < base) d = new Date(base.getFullYear(), base.getMonth() + 1, start.getDate());
+    return d.toISOString().slice(0, 10);
+  }
+  if (e.repeatType === 'yearly') {
+    let d = new Date(base.getFullYear(), start.getMonth(), start.getDate());
+    if (d < base) d = new Date(base.getFullYear() + 1, start.getMonth(), start.getDate());
+    return d.toISOString().slice(0, 10);
+  }
+  if (e.repeatType === 'weekly' || e.repeatType === 'biweekly') {
+    const days = e.repeatDays || [];
+    if (!days.length) return e.startDate;
+    // 앞으로 14일 내에서 탐색
+    for (let i = 0; i <= 14; i++) {
+      const d = new Date(base); d.setDate(base.getDate() + i);
+      const ds = d.toISOString().slice(0, 10);
+      if ((e.excludeDates || []).includes(ds)) continue;
+      if (e.repeatType === 'weekly' && days.includes(d.getDay())) return ds;
+      if (e.repeatType === 'biweekly') {
+        const diffWeeks = Math.floor(Math.round((d - start) / 86400000) / 7);
+        if (diffWeeks % 2 === 0 && days.includes(d.getDay())) return ds;
+      }
+    }
+  }
+  return e.startDate;
 }
 
 function getEventsForDate(dateStr) {
