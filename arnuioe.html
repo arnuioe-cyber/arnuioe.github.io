@@ -1,0 +1,3340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="arnuioe">
+<meta name="theme-color" content="#faf9f7">
+<title>arnuioe</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --primary:#504E48;--primary-light:#eceae6;
+  --accent:#8C1B2F;--accent-light:#f8e8eb;
+  --bg:#faf9f7;--surface:#ffffff;
+  --text-dark:#2d2a26;--text-mid:#6a6460;--text-light:#9a9590;
+  --divider:#eae7e2;--chip:#f0ede8;
+  --radius:14px;--radius-lg:20px;
+  --shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+html,body{height:100%;background:var(--bg);font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',sans-serif;overflow-x:hidden}
+body{display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative;overflow-x:hidden}
+body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
+/* desktop scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--divider);border-radius:3px}
+
+
+/* ── HEADER ── */
+.app-header{padding:32px 20px 12px;background:var(--bg);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.app-header h1{font-size:34px;font-weight:800;color:var(--text-dark);letter-spacing:-1px}
+.app-header .sub{font-size:12px;color:var(--text-light);margin-top:1px}
+.hbtns{display:flex;gap:10px}
+.hbtn{width:34px;height:34px;border-radius:50%;background:var(--chip);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s;filter:grayscale(1)}
+.hbtn:active{background:#ddd}
+
+/* ── SCREENS ── */
+.screens{flex:1;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transition:opacity .2s}
+.screen::-webkit-scrollbar{display:none}
+.screen.active{opacity:1;pointer-events:all}
+.screen-inner{padding-bottom:20px}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{background:var(--bg);border-top:1px solid var(--divider);display:flex;justify-content:space-around;padding:8px 0 calc(26px + env(safe-area-inset-bottom));flex-shrink:0}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;padding:4px 10px;border-radius:12px;transition:.15s;min-width:48px}
+.nav-btn .ni{font-size:22px;transition:transform .2s;color:var(--text-light);display:flex;align-items:center;justify-content:center}
+.nav-btn.active .ni{color:var(--primary)}
+.nav-btn .nl{font-size:10px;font-weight:500;color:var(--text-light)}
+.nav-btn.active .nl{color:var(--primary)}
+.nav-btn.active .ni{transform:scale(1.1)}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--primary);opacity:0;margin:1px auto 0}
+.nav-btn.active .nav-dot{opacity:1}
+
+/* ── COMMON ── */
+.section-pad{padding:0 16px}
+.section-title{font-size:14px;font-weight:700;color:var(--text-dark);padding:14px 16px 8px}
+.card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);margin:0 16px 12px;overflow:hidden;border:2px solid var(--accent)}
+.card-header{padding:14px 16px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--chip)}
+.card-add-btn{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-light);line-height:1;padding:0 2px;transition:.15s}
+.card-add-btn:active{color:var(--primary);transform:scale(1.2)}
+.card-title{font-size:14px;font-weight:700;color:var(--text-dark);display:flex;align-items:center;gap:6px}
+.card-body{padding:14px 16px}
+.empty-text{text-align:center;padding:20px;color:var(--text-light);font-size:13px}
+.fab{position:fixed;bottom:106px;right:calc(50% - 215px + 28px);width:52px;height:52px;border-radius:50%;background:var(--primary);color:white;border:none;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(92,107,192,.4);display:flex;align-items:center;justify-content:center;transition:.2s;z-index:50}
+.fab:active{transform:scale(.95)}
+.btn-primary{background:var(--primary);color:white;border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;width:100%;cursor:pointer;transition:.15s}
+.btn-primary:active{opacity:.85}
+.input{width:100%;padding:12px 14px;border-radius:var(--radius);border:none;background:var(--chip);font-size:14px;color:var(--text-dark);outline:none;box-sizing:border-box}
+.input:focus{background:#e8e4fd;box-shadow:0 0 0 2px var(--primary-light)}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;touch-action:none}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-sheet{background:white;border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:28px 24px 48px;max-height:90vh;overflow-y:auto;overflow-x:hidden;transform:translateY(100%);transition:.3s cubic-bezier(.32,.72,0,1);touch-action:pan-y;overscroll-behavior:contain;box-sizing:border-box}
+.modal-overlay.open .modal-sheet{transform:translateY(0)}
+.modal-title{font-size:18px;font-weight:700;color:var(--text-dark);margin-bottom:20px}
+.modal-label{font-size:12px;font-weight:600;color:var(--text-mid);margin-bottom:6px;margin-top:14px}
+.modal-row{display:flex;gap:10px;align-items:center}
+
+/* ── CHIPS ── */
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;cursor:pointer;border:1.5px solid transparent;transition:.15s;flex-shrink:0}
+.chip.sel{border-color:currentColor}
+
+/* ── TOGGLE ── */
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--chip)}
+.toggle-label{font-size:14px;color:var(--text-dark)}
+.toggle{width:44px;height:26px;border-radius:13px;background:#ddd;position:relative;cursor:pointer;transition:.2s;border:none;flex-shrink:0}
+.toggle.on{background:var(--primary)}
+.toggle::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:white;top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{left:21px}
+
+/* ══════════════════════════════════════
+   1. CALENDAR
+══════════════════════════════════════ */
+.cal-month-nav{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 14px}
+.cal-month-title{font-size:26px;font-weight:800;color:var(--text-dark);letter-spacing:-0.5px}
+.cal-nav-btns{display:flex;gap:8px}
+.cal-nav-btn{width:24px;height:24px;border-radius:50%;border:none;background:none;cursor:pointer;font-size:16px;color:var(--text-mid);display:flex;align-items:center;justify-content:center}
+
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);padding:4px 12px;margin-top:16px}
+.cal-dow span{text-align:center;font-size:11px;font-weight:600;color:var(--text-dark);padding:4px 0}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 12px 8px;row-gap:2px}
+.cal-cell{display:flex;flex-direction:column;align-items:center;min-height:46px;cursor:pointer;padding:2px 1px}
+.cal-cell:active .cal-num{background:var(--chip)}
+.cal-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--text-dark);transition:.15s}
+.cal-cell.other .cal-num{color:#c8c4be}
+.cal-cell.today .cal-num{background:var(--primary);color:white;font-weight:700}
+.cal-cell.sel .cal-num{background:var(--primary);color:white;font-weight:700}
+.cal-bars{width:100%;display:flex;flex-direction:column;gap:2px;margin-top:4px;overflow:visible}
+.cal-bar-seg{height:4px}
+.cal-bar-seg.seg-start{border-radius:2px 0 0 2px;margin-left:50%;margin-right:-2px}
+.cal-bar-seg.seg-middle{border-radius:0;margin-left:-2px;margin-right:-2px}
+.cal-bar-seg.seg-end{border-radius:0 2px 2px 0;margin-left:-2px;margin-right:50%}
+.cal-bar-seg.seg-single{border-radius:2px;margin:0 8%}
+.cal-bar{height:4px;border-radius:2px;width:100%}
+.cal-dots{display:flex;gap:3px;margin-top:5px;justify-content:center}
+.cal-dot{width:5px;height:5px;border-radius:50%}
+
+.event-card{margin:0 16px 8px;background:white;border-radius:14px;padding:0;display:flex;overflow:hidden;box-shadow:var(--shadow);cursor:pointer}
+.event-card:active{opacity:.85}
+.event-bar{width:4px;flex-shrink:0}
+.event-info{flex:1;padding:12px 14px}
+.event-name{font-size:14px;font-weight:600;color:var(--text-dark);margin-bottom:3px}
+.event-meta{font-size:11px;color:var(--text-light)}
+.event-dday{margin:auto 14px auto 0;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700}
+
+/* ══════════════════════════════════════
+   2. DIET
+══════════════════════════════════════ */
+.diet-banner{margin:8px 16px 22px;background:var(--bg);border:2.5px solid var(--primary);border-radius:var(--radius-lg);padding:20px;color:var(--text-dark)}
+.diet-banner-top{font-size:12px;color:var(--text-mid);margin-bottom:6px}
+.diet-cal-row{display:flex;align-items:baseline;gap:4px}
+.diet-cal-num{font-size:38px;font-weight:800;letter-spacing:-1px;color:var(--text-dark)}
+.diet-cal-unit{font-size:14px;color:var(--text-mid)}
+.diet-cal-sub{font-size:12px;color:var(--text-light);margin-top:3px}
+.diet-prog-bg{height:8px;background:var(--chip);border-radius:4px;margin-top:12px;overflow:hidden}
+.diet-prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .6s ease}
+.macros{display:flex;justify-content:space-around;margin-top:14px}
+.macro{text-align:center}
+.macro-val{font-size:16px;font-weight:700;color:var(--text-dark)}
+.macro-lbl{font-size:10px;color:var(--text-light);margin-top:1px}
+
+.meal-cal-badge{font-size:10px;font-weight:600;color:var(--primary);background:var(--primary-light);padding:2px 7px;border-radius:10px;white-space:nowrap}
+.add-btn{width:100%;padding:9px;border:1.5px dashed var(--divider);border-radius:var(--radius);background:none;color:var(--text-light);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:.15s}
+.add-btn:hover,.add-btn:active{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+
+/* 수평 식단 카드 */
+.meal-scroll{display:flex;gap:10px;padding:0 16px 20px;overflow-x:auto;scrollbar-width:none;align-items:flex-start}
+.meal-scroll::-webkit-scrollbar{display:none}
+.meal-card{min-width:150px;max-width:150px;background:white;border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:12px 10px;flex-shrink:0;display:flex;flex-direction:column;gap:8px}
+.meal-card-hdr{display:flex;justify-content:space-between;align-items:center;gap:4px}
+.meal-card-title{font-size:12px;font-weight:700;color:var(--text-dark)}
+.meal-photo-item{border-radius:10px;overflow:hidden;background:var(--chip);position:relative;cursor:pointer}
+.meal-photo-item img{width:100%;height:90px;object-fit:cover;display:block}
+.meal-photo-emoji{width:100%;height:70px;display:flex;align-items:center;justify-content:center;font-size:26px;background:var(--chip)}
+.meal-photo-info{padding:6px 8px 8px}
+.meal-photo-name{font-size:12px;font-weight:600;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meal-photo-cal{font-size:10px;color:var(--text-light);margin-top:1px}
+.meal-del-btn{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.4);border:none;color:white;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+
+/* ══════════════════════════════════════
+   3. DIARY
+══════════════════════════════════════ */
+.diary-date{padding:8px 20px 14px;font-size:14px;color:var(--text-mid);font-weight:500}
+
+.ootd-row{display:flex;gap:12px}
+.ootd-photo{width:80px;height:100px;border-radius:12px;background:linear-gradient(135deg,#ffecd2,#fcb69f);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:26px;cursor:pointer;flex-shrink:0;border:2px dashed #e0c8b8;transition:.15s}
+.ootd-photo:hover{border-color:#fcb69f}
+.ootd-tags{flex:1;display:flex;flex-direction:column;gap:6px}
+.ootd-tag{padding:7px 10px;background:var(--chip);border-radius:8px;font-size:12px;color:var(--text-mid)}
+.ootd-tag strong{display:block;font-size:10px;color:var(--text-light);margin-bottom:2px;text-transform:uppercase;letter-spacing:.3px}
+
+.camera-chips{display:flex;gap:8px;flex-wrap:wrap}
+.camera-chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1.5px solid var(--divider);background:white;cursor:pointer;transition:.15s;color:var(--text-mid)}
+.camera-chip.sel{border-color:var(--primary);background:var(--primary-light);color:var(--primary);font-weight:600}
+.stars{display:flex;gap:6px;margin-top:10px}
+.star{font-size:24px;cursor:pointer;opacity:.3;transition:opacity .15s}
+.star.on{opacity:1}
+.cam-memo{margin-top:10px;font-size:12px;color:var(--text-mid);font-style:italic}
+
+.fin-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--chip)}
+.fin-row:last-child{border-bottom:none}
+.fin-lbl{font-size:13px;color:var(--text-mid);display:flex;align-items:center;gap:6px}
+.fin-amt{font-size:15px;font-weight:700}
+.fin-amt.inc{color:#4caf50}
+.fin-amt.exp{color:#ef5350}
+.fin-sub{font-size:11px;color:var(--text-light);padding:3px 0 8px}
+.fin-item-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0}
+.fin-item-lbl{font-size:13px;color:var(--text-dark)}
+.fin-item-amt{font-size:13px;font-weight:600}
+
+.tp-item{display:flex;gap:10px;margin-bottom:10px}
+.tp-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.tp-text{font-size:13px;color:var(--text-mid);line-height:1.5;padding-top:4px}
+.tp-text strong{color:var(--text-dark);display:block;margin-bottom:2px}
+
+.fw-box{background:#1a1814;border-radius:var(--radius);padding:16px;color:#c8c4b4;font-size:13px;line-height:1.8}
+.fw-hdr{display:flex;justify-content:space-between;margin-bottom:10px}
+.fw-title{font-size:10px;color:#6a6458}
+.fw-music{font-size:10px;color:#8a8474;background:#2a2820;padding:3px 8px;border-radius:10px}
+
+.vlog-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.vlog-cell{aspect-ratio:9/16;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;position:relative;overflow:hidden;transition:.15s}
+.vlog-cell:active{opacity:.8}
+.vlog-cell-date{position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:8px;color:white;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.vlog-add{background:var(--chip);border:2px dashed var(--divider)}
+
+/* ══════════════════════════════════════
+   4. SCHEDULE
+══════════════════════════════════════ */
+.date-scroll{display:flex;gap:8px;padding:0 16px 8px;overflow-x:auto;scrollbar-width:none}
+.date-scroll::-webkit-scrollbar{display:none}
+.date-cell{min-width:46px;height:52px;border-radius:14px;background:var(--chip);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;flex-shrink:0;transition:.15s}
+.date-cell.today-sel{background:var(--accent)}
+.date-cell .dc-dow{font-size:10px;font-weight:500}
+.date-cell .dc-num{font-size:18px;font-weight:700}
+.date-cell.today-sel .dc-dow,.date-cell.today-sel .dc-num{color:white}
+.date-cell:not(.today-sel) .dc-dow{color:var(--text-light)}
+.date-cell:not(.today-sel) .dc-num{color:var(--text-dark)}
+
+.timeline{padding:0 16px}
+.tl-row{display:flex;gap:10px;min-height:52px}
+.tl-time{width:38px;font-size:11px;color:var(--text-light);text-align:right;padding-top:4px;flex-shrink:0}
+.tl-line-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.tl-line{width:1px;flex:1;background:var(--divider)}
+.tl-dot-now{width:10px;height:10px;border-radius:50%;background:#ef5350;margin:-5px 0}
+.tl-events{flex:1;padding:2px 0 4px}
+.tl-block{border-radius:10px;padding:9px 12px;margin-bottom:4px;cursor:pointer}
+.tl-block-title{font-size:13px;font-weight:600;color:white}
+.tl-block-time{font-size:10px;color:rgba(255,255,255,.75);margin-top:2px}
+.tl-now-line{display:flex;align-items:center;gap:0;margin:0 16px 0 calc(16px + 48px)}
+.tl-now-dot{width:8px;height:8px;border-radius:50%;background:#ef5350;flex-shrink:0}
+.tl-now-hr{flex:1;height:1.5px;background:#ef5350}
+
+/* ══════════════════════════════════════
+   5. ROUTINE
+══════════════════════════════════════ */
+.routine-item{background:white;border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);cursor:pointer;transition:.15s}
+.routine-item:active{opacity:.85}
+.routine-check{width:26px;height:26px;border-radius:50%;border:2px solid #dedad5;background:#e8e4df;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s;font-size:13px}
+.routine-check.done{background:var(--accent);border-color:var(--accent);color:white}
+.routine-name{font-size:14px;font-weight:600;color:var(--text-dark)}
+.routine-time{font-size:11px;color:var(--text-light);margin-top:2px}
+.routine-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;margin-left:auto}
+.streak-badge{font-size:11px;font-weight:600;background:#e8e4df;color:var(--text-dark);padding:2px 8px;border-radius:8px}
+.week-dots{display:flex;gap:3px}
+.wd{width:8px;height:8px;border-radius:50%;background:var(--divider)}
+.wd.done{background:#4caf50}
+.wd.today{background:var(--accent)}
+
+/* ══════════════════════════════════════
+   6. TODO
+══════════════════════════════════════ */
+.todo-filter{display:flex;gap:8px;padding:16px 16px 14px;overflow-x:auto;scrollbar-width:none}
+.todo-filter::-webkit-scrollbar{display:none}
+.fchip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;border:none;transition:.15s}
+.fchip.active{background:var(--primary-light);color:var(--primary)}
+.fchip:not(.active){background:white;color:var(--text-mid);box-shadow:var(--shadow)}
+
+.todo-group{margin:0 16px 16px}
+.todo-group-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.todo-group-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.todo-group-name{font-size:13px;font-weight:700;color:var(--text-mid)}
+.todo-group-cnt{font-size:11px;color:var(--text-light);background:var(--chip);padding:2px 7px;border-radius:8px}
+
+.todo-item{background:white;border-radius:12px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);cursor:pointer;transition:.15s}
+.todo-item:active{transform:scale(.99)}
+.todo-cb{width:20px;height:20px;border-radius:6px;border:2px solid var(--divider);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;transition:.2s}
+.todo-cb.done{background:var(--accent);border-color:var(--accent);color:white}
+.todo-text{font-size:13px;color:var(--text-dark);flex:1}
+.todo-text.done{text-decoration:line-through;color:var(--text-light)}
+.todo-due{font-size:10px;color:var(--text-light);white-space:nowrap}
+.todo-due.overdue{color:#ef5350}
+.todo-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:16px;padding:2px 4px;flex-shrink:0}
+
+</style>
+</head>
+<body>
+
+
+<!-- ── HEADER ── -->
+<div class="app-header">
+  <div style="display:flex;align-items:center;gap:8px">
+    <h1 id="headerTitle">APRIL</h1>
+    <div id="calNavBtns" style="display:flex;gap:2px;margin-top:4px">
+      <button class="cal-nav-btn" onclick="calMove(-1)">‹</button>
+      <button class="cal-nav-btn" onclick="calMove(1)">›</button>
+    </div>
+    <button id="dietCalBtn" onclick="openDietCal()" style="display:none;background:none;border:none;cursor:pointer;font-size:20px;color:var(--accent);padding:0;margin-top:2px;line-height:1">✦</button>
+    <button id="diaryCalBtn" onclick="openDiaryCal()" style="display:none;background:none;border:none;cursor:pointer;font-size:20px;color:var(--accent);padding:0;margin-top:2px;line-height:1">✦</button>
+    <button id="routineCalBtn" onclick="openRoutineCal()" style="display:none;background:none;border:none;cursor:pointer;font-size:20px;color:var(--accent);padding:0;margin-top:2px;line-height:1">✦</button>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button id="dietViewBtn" onclick="openDietMonthly()" style="display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);padding:0;line-height:1;margin-bottom:4px">☰</button>
+    <button id="routineViewBtn" onclick="openRoutineMonthly()" style="display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);padding:0;line-height:1;margin-bottom:4px">☰</button>
+    <button id="calAddBtn" onclick="openAddEventModal()" style="display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);padding:0;line-height:1">＋</button>
+    <button id="calViewBtn" onclick="toggleCalView()" style="display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);padding:0;line-height:1">☰</button>
+    <button onclick="openModal('m-settings')" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-mid);padding:0;line-height:1">⚙</button>
+  </div>
+</div>
+
+<!-- ── SCREENS ── -->
+<div class="screens">
+
+  <!-- ① CALENDAR -->
+  <div class="screen active" id="s-calendar" style="display:flex;flex-direction:column;overflow:hidden">
+    <!-- 고정 영역 -->
+    <div style="flex-shrink:0">
+      <!-- 카테고리 칩 -->
+      <div class="chips" style="padding:16px 16px 12px" id="catChips"></div>
+      <!-- 달력 요일 헤더 + 그리드 (scroll-collapsible) -->
+      <div id="calCollapsible">
+        <div class="cal-dow">
+          <span>M</span><span>T</span><span>W</span><span>T</span>
+          <span>F</span><span>S</span><span>S</span>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+    <!-- Schedule 타이틀 고정 -->
+    <div style="flex-shrink:0">
+      <div class="section-title" id="scheduleTitle" style="padding-top:12px">Schedule</div>
+    </div>
+    <!-- 스크롤 영역 -->
+    <div id="calScrollArea" style="flex:1;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+      <div id="upcomingList" style="padding-bottom:20px"></div>
+    </div>
+  </div>
+
+  <!-- ② DIET -->
+  <div class="screen" id="s-diet">
+    <div class="screen-inner">
+      <div class="date-scroll" id="dietDateScroll" style="padding-top:8px"></div>
+      <div class="diet-banner">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div class="diet-banner-top" style="margin-bottom:0">Today's Calories</div>
+          <button onclick="openGoalModal()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--primary);font-weight:700;letter-spacing:.3px">set goal</button>
+        </div>
+        <div class="diet-cal-row">
+          <span class="diet-cal-num" id="totalCal">0</span>
+          <span class="diet-cal-unit">kcal</span>
+        </div>
+        <div class="diet-cal-sub" id="calGoalSub">Goal 1,800 kcal</div>
+        <div class="diet-prog-bg"><div class="diet-prog-fill" id="calProg" style="width:0%"></div></div>
+        <div class="macros">
+          <div class="macro"><div class="macro-val" id="mCarbs">0g</div><div class="macro-lbl">Carbs</div></div>
+          <div class="macro"><div class="macro-val" id="mProt">0g</div><div class="macro-lbl">Protein</div></div>
+          <div class="macro"><div class="macro-val" id="mFat">0g</div><div class="macro-lbl">Fat</div></div>
+          <div class="macro" onclick="openWaterModal()" style="cursor:pointer"><div class="macro-val" id="mWater">0L</div><div class="macro-lbl">Water</div></div>
+        </div>
+      </div>
+      <div id="mealSections"></div>
+    </div>
+  </div>
+
+  <!-- ③ DIARY -->
+  <div class="screen" id="s-diary" style="display:flex;flex-direction:column;overflow:hidden">
+    <!-- 날짜 스크롤 고정 -->
+    <div style="flex-shrink:0;background:var(--bg)">
+      <div class="date-scroll" id="diaryDateScroll" style="padding-top:8px;padding-bottom:14px"></div>
+    </div>
+    <!-- 스크롤 영역 -->
+    <div style="flex:1;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+      <div style="padding-bottom:20px">
+
+        <!-- apple -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">apple</div>
+            <button onclick="openAppleModal()" class="card-add-btn">＋</button>
+          </div>
+          <div class="card-body" id="appleBody"></div>
+        </div>
+
+        <!-- money -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">money</div>
+            <button onclick="openFinModal()" class="card-add-btn">＋</button>
+          </div>
+          <div class="card-body" id="finBody"></div>
+        </div>
+
+        <!-- Today's most... -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Today's most...</div>
+            <button onclick="openTpModal()" class="card-add-btn">＋</button>
+          </div>
+          <div class="card-body" id="tpBody"></div>
+        </div>
+
+        <!-- arnuioe -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">arnuioe</div>
+            <button onclick="openFwModal()" class="card-add-btn">＋</button>
+          </div>
+          <div class="card-body" id="fwBody"></div>
+        </div>
+
+        <!-- OOTD -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">OOTD</div>
+            <button onclick="openOotdModal()" class="card-add-btn">＋</button>
+          </div>
+          <div class="card-body" id="ootdBody"></div>
+        </div>
+
+        <!-- archive -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">archive</div>
+            <button onclick="openArchiveModal()" class="card-add-btn">＋</button>
+          </div>
+          <div class="card-body" id="archiveBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ SCHEDULE -->
+  <div class="screen" id="s-schedule" style="display:flex;flex-direction:column;overflow:hidden">
+    <!-- 날짜 롤러: 스크롤 고정 -->
+    <div style="flex-shrink:0;background:var(--bg)">
+      <div class="date-scroll" id="dateScroll" style="padding-top:8px"></div>
+    </div>
+    <!-- 타임라인: 독립 스크롤 -->
+    <div style="flex:1;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </div>
+
+  <!-- ⑤ ROUTINE -->
+  <div class="screen" id="s-routine" style="display:flex;flex-direction:column;overflow:hidden">
+    <!-- 퍼센테이지 고정 -->
+    <div style="flex-shrink:0;background:var(--bg);text-align:center;padding:32px 16px 20px">
+      <div id="routineRate" style="font-size:42px;font-weight:800;color:var(--text-dark);letter-spacing:-1px">0%</div>
+    </div>
+    <!-- 스크롤 영역 -->
+    <div style="flex:1;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+      <div class="section-title">today</div>
+      <div id="routineList" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;padding-bottom:20px"></div>
+    </div>
+  </div>
+
+  <!-- ⑥ TODO -->
+  <div class="screen" id="s-todo">
+    <div class="screen-inner">
+      <div class="todo-filter" id="todoFilter"></div>
+      <div id="todoGroups"></div>
+    </div>
+  </div>
+
+</div><!-- end screens -->
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="fabAction()">＋</button>
+
+<!-- ── BOTTOM NAV ── -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="goTab('calendar',this)" data-tab="calendar">
+    <span class="ni"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="22" height="22"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M7.50098 12c0 1.1935 0.4741 2.3381 1.31802 3.182 0.84391 0.8439 1.9885 1.318 3.182 1.318s2.338-0.4741 3.182-1.318c0.8439-0.8439 1.318-1.9885 1.318-3.182 0-0.5909-0.1164-1.1761-0.3426-1.7221-0.2261-0.54594-0.5576-1.04202-0.9754-1.45988-0.4179-0.41786-0.914-0.74933-1.4599-0.97548C13.1771 7.6164 12.5919 7.5 12.001 7.5c-0.591 0-1.1761 0.1164-1.7221 0.34254-0.54596 0.22615-1.04204 0.55762-1.4599 0.97548-0.41787 0.41786-0.74934 0.91394-0.97548 1.45988-0.22615 0.546-0.34254 1.1312-0.34254 1.7221Z" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M12.001 1.5v3" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M12.001 19.5v3" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M22.501 12h-3" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M4.50098 12h-3" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m19.425 4.57605-2.121 2.121" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m6.69699 17.304-2.121 2.121" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m19.425 19.425-2.121-2.121" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m6.69699 6.69705-2.121-2.121" stroke-width="1.5"/></svg></span><span class="nl">calendar</span><div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" onclick="goTab('diet',this)" data-tab="diet">
+    <span class="ni"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="22" height="22"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M17.1753 6.14369c0.0054 -2.8388 -2.2943 -5.143 -5.1331 -5.1428H6.17581c-3.9435 -0.060602 -6.473703 4.1705 -4.5544 7.6159 0.5292 0.95 1.347 1.70691 2.335 2.16131l-1.2515 10.5791c-0.1057 0.8737 0.5767 1.6431 1.4568 1.6426H15.7087L14.2616 10.739c1.7732 -0.84501 2.9057 -2.63101 2.9137 -4.59531Z" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M15.7087 22.9998h4.214c0.8801 0.0005 1.5624 -0.7689 1.4568 -1.6426L20.128 10.739c3.5525 -1.71285 3.9186 -6.62915 0.659 -8.84935 -0.8488 -0.578 -1.8516 -0.8877 -2.8784 -0.8888h-5.8664" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M20.128 10.7292h-5.8566" stroke-width="1.5"/></svg></span><span class="nl">diet</span><div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" onclick="goTab('diary',this)" data-tab="diary">
+    <span class="ni"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="22" height="22"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M19 12c-4.4489 1.4324 -5.9155 3.0274 -7 7 -1.0845 -3.9726 -2.5511 -5.5676 -7 -7 4.4489 -1.4324 5.9155 -3.02741 7 -7 1.0845 3.97259 2.5511 5.5676 7 7Z" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M12 2V1" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M12 23v-1" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M22 12h1" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M1 12h1" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m17 7 3 -3" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M7 7 4 4" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m7 17 -3 3" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m17 17 3 3" stroke-width="1.5"/></svg></span><span class="nl">diary</span><div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" onclick="goTab('schedule',this)" data-tab="schedule">
+    <span class="ni"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="22" height="22"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M6.75 3.75h10.5s3 0 3 3v10.5s0 3 -3 3H6.75s-3 0 -3 -3V6.75s0 -3 3 -3Z" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M17.25 3.75H6.75v-1.5c0 -0.39782 0.15804 -0.77936 0.43934 -1.06066C7.47064 0.908035 7.85218 0.75 8.25 0.75h7.5c0.3978 0 0.7794 0.158035 1.0607 0.43934 0.2813 0.2813 0.4393 0.66284 0.4393 1.06066v1.5Z" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M15.75 23.25h-7.5c-0.39782 0 -0.77936 -0.158 -1.06066 -0.4393 -0.2813 -0.2813 -0.43934 -0.6629 -0.43934 -1.0607v-1.5h10.5v1.5c0 0.3978 -0.158 0.7794 -0.4393 1.0607s-0.6629 0.4393 -1.0607 0.4393Z" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m15 13.5 -3 3 -3 -3" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V6.75" stroke-width="1.5"/></svg></span><span class="nl">schedule</span><div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" onclick="goTab('routine',this)" data-tab="routine">
+    <span class="ni"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></span><span class="nl">routine</span><div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" onclick="goTab('todo',this)" data-tab="todo">
+    <span class="ni"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="22" height="22"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m6.75 9.00002 3.294 4.61098c0.1356 0.1899 0.3129 0.3461 0.5183 0.4567 0.2054 0.1106 0.4335 0.1726 0.6666 0.1813 0.2331 0.0087 0.4651 -0.0362 0.6782 -0.1312s0.4015 -0.2376 0.5509 -0.4168L23.25 0.749023" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M21.75 10.5v9.75c0 0.7956 -0.3161 1.5587 -0.8787 2.1213 -0.5626 0.5626 -1.3257 0.8787 -2.1213 0.8787h-15c-0.79565 0 -1.55871 -0.3161 -2.12132 -0.8787C1.06607 21.8087 0.75 21.0456 0.75 20.25v-15c0 -0.79565 0.31607 -1.55871 0.87868 -2.12132C2.19129 2.56607 2.95435 2.25 3.75 2.25H16.5" stroke-width="1.5"/></svg></span><span class="nl">to-do</span><div class="nav-dot"></div>
+  </button>
+</div>
+
+<!-- ══════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+<!-- 일정 추가 모달 -->
+<div class="modal-overlay" id="m-event" onclick="closeModal('m-event',event)">
+  <div class="modal-sheet">
+    <div class="modal-title" id="evModalTitle">NEW !</div>
+    <input class="input" id="evTitle" placeholder="일정 제목" style="margin-bottom:14px">
+    <div class="modal-label">category</div>
+    <div class="chips" id="evCatChips" style="flex-wrap:wrap;gap:8px"></div>
+    <div class="modal-label" style="margin-top:16px">date</div>
+    <!-- 멀티 날짜 피커 -->
+    <div id="evDatePicker" style="background:var(--chip);border-radius:var(--radius);padding:10px 8px;margin-top:4px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px">
+        <button onclick="evPickerMove(-1)" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-mid);line-height:1">‹</button>
+        <span id="evPickerTitle" style="font-size:13px;font-weight:700;color:var(--text-dark)"></span>
+        <button onclick="evPickerMove(1)" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-mid);line-height:1">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px">
+        <span style="font-size:10px;color:var(--text-light);padding:2px">M</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">T</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">W</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">T</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">F</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">S</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">S</span>
+      </div>
+      <div id="evPickerGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center"></div>
+    </div>
+    <div style="margin-top:8px">
+      <input class="input" type="time" id="evTime" placeholder="time (optional)">
+    </div>
+    <div class="toggle-row" style="margin-top:14px">
+      <span class="toggle-label">bar</span>
+      <button class="toggle" id="evPeriodToggle" onclick="toggleEl(this)"></button>
+    </div>
+    <div id="evEndDateWrap" style="display:none;margin-top:10px">
+      <div class="modal-label">end date</div>
+      <input class="input" type="date" id="evEndDate">
+      <div style="margin-top:8px">
+        <input class="input" type="time" id="evEndTime" placeholder="end time (optional)">
+      </div>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">repeat</span>
+      <button class="toggle" id="evRepeatToggle" onclick="toggleEl(this)"></button>
+    </div>
+    <div id="evRepeatWrap" style="display:none;margin-top:10px">
+      <select class="input" id="evRepeatType" onchange="renderRepeatDayBtns()" style="margin-bottom:10px">
+        <option value="weekly">weekly (by day)</option>
+        <option value="biweekly">biweekly (every 2 weeks)</option>
+        <option value="monthly">monthly</option>
+        <option value="yearly">yearly</option>
+      </select>
+      <div id="evRepeatDayBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveEvent()">save</button>
+  </div>
+</div>
+
+<!-- 물 입력 모달 -->
+<div class="modal-overlay" id="m-water" onclick="closeModal('m-water',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">Water</div>
+    <div class="modal-label">오늘 마신 물 (L)</div>
+    <input class="input" type="number" id="waterInput" step="0.1" min="0" placeholder="예: 1.5">
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button onclick="addWater(0.25)" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--chip);color:var(--text-dark);font-size:13px;font-weight:600;cursor:pointer">+250ml</button>
+      <button onclick="addWater(0.5)" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--chip);color:var(--text-dark);font-size:13px;font-weight:600;cursor:pointer">+500ml</button>
+      <button onclick="addWater(1)" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--chip);color:var(--text-dark);font-size:13px;font-weight:600;cursor:pointer">+1L</button>
+    </div>
+    <div style="height:16px"></div>
+    <button class="btn-primary" onclick="saveWater()">save</button>
+  </div>
+</div>
+
+<!-- 식단 추가 모달 -->
+<div class="modal-overlay" id="m-meal" onclick="closeModal('m-meal',event)">
+  <div class="modal-sheet" style="padding:0;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:20px 24px 12px;flex-shrink:0">
+      <div class="modal-title" id="mealModalTitle">NEW !</div>
+    </div>
+    <div style="padding:0 24px 8px;overflow-y:auto;overflow-x:hidden;flex:1;min-height:0;-webkit-overflow-scrolling:touch">
+      <div class="modal-label">date</div>
+      <input class="input" type="date" id="mealDate">
+      <div style="height:10px"></div>
+      <input class="input" id="mealName" placeholder="menu name">
+      <div style="height:10px"></div>
+      <input class="input" id="mealCal" type="number" placeholder="calories (kcal)">
+      <div style="height:10px"></div>
+      <div class="modal-row" style="gap:8px">
+        <input class="input" id="mealCarbs" type="number" placeholder="carbs (g)" style="flex:1">
+        <input class="input" id="mealProt" type="number" placeholder="protein (g)" style="flex:1">
+        <input class="input" id="mealFat" type="number" placeholder="fat (g)" style="flex:1">
+      </div>
+      <div style="height:10px"></div>
+      <input class="input" type="time" id="mealTime">
+      <div style="height:10px"></div>
+      <label for="mealPhoto" style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-radius:var(--radius);background:var(--chip);cursor:pointer;font-size:13px;color:var(--text-mid)">
+        <span style="font-size:18px">📷</span> add photo
+        <input type="file" id="mealPhoto" accept="image/*" style="display:none" onchange="previewMealPhoto(this)">
+      </label>
+      <div id="mealPhotoPreview"></div>
+    </div>
+    <div style="padding:12px 24px;padding-bottom:calc(12px + env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--chip)">
+      <button class="btn-primary" onclick="saveMeal()" style="width:100%;padding:14px">save</button>
+    </div>
+  </div>
+</div>
+
+<!-- 다이어리 항목 선택 모달 -->
+<div class="modal-overlay" id="m-diary-pick" onclick="closeModal('m-diary-pick',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">what to write?</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="closeModal('m-diary-pick');openAppleModal()" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">apple</button>
+      <button onclick="closeModal('m-diary-pick');openFinModal()" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">money</button>
+      <button onclick="closeModal('m-diary-pick');openTpModal()" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">Today's most...</button>
+      <button onclick="closeModal('m-diary-pick');openFwModal()" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">arnuioe</button>
+      <button onclick="closeModal('m-diary-pick');openOotdModal()" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">OOTD</button>
+      <button onclick="closeModal('m-diary-pick');openArchiveModal()" style="padding:14px;border-radius:var(--radius);background:var(--chip);border:none;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;text-align:left">archive</button>
+    </div>
+  </div>
+</div>
+
+<!-- apple 모달 -->
+<div class="modal-overlay" id="m-apple" onclick="closeModal('m-apple',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">apple</div>
+    <div class="modal-label">Apple Music · Spotify link</div>
+    <input class="input" id="appleLink" placeholder="paste share link...">
+    <div style="font-size:11px;color:var(--text-light);margin-top:6px">Apple Music에서 공유 → 링크 복사 후 붙여넣기</div>
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveApple()">save</button>
+  </div>
+</div>
+
+<!-- OOTD 모달 -->
+<div class="modal-overlay" id="m-ootd" onclick="closeModal('m-ootd',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">OOTD</div>
+    <div id="ootdPhotoPreview" style="margin-bottom:12px"></div>
+    <label style="display:block;padding:14px;border-radius:var(--radius);background:var(--chip);text-align:center;cursor:pointer;font-size:14px;color:var(--text-mid)">
+      + add photo
+      <input type="file" id="ootdPhotoInput" accept="image/*" style="display:none" onchange="handleOotdPhoto(this)">
+    </label>
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveOotd()">save</button>
+  </div>
+</div>
+
+<!-- 가계부 모달 -->
+<div class="modal-overlay" id="m-fin" onclick="closeModal('m-fin',event)">
+  <div class="modal-sheet">
+    <div class="modal-title" id="finModalTitle">money</div>
+    <div class="modal-label">type</div>
+    <div class="chips" style="flex-wrap:wrap;gap:8px;margin-bottom:14px">
+      <button class="chip" id="finTypeExp" style="color:#ef5350;background:#fce4ec" onclick="setFinType('exp')">expense</button>
+      <button class="chip" id="finTypeInc" style="color:#4caf50;background:#e8f5e9" onclick="setFinType('inc')">income</button>
+    </div>
+    <div class="modal-label">description</div>
+    <input class="input" id="finDesc" placeholder="e.g. coffee, salary">
+    <div class="modal-label">amount</div>
+    <input class="input" id="finAmt" type="number" placeholder="e.g. 4500">
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveFin()">save</button>
+  </div>
+</div>
+
+<!-- Today's most 모달 -->
+<div class="modal-overlay" id="m-tp" onclick="closeModal('m-tp',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">Today's most...</div>
+    <div class="modal-label">joyful</div>
+    <input class="input" id="tpJoy" placeholder="what made you happy today?">
+    <div class="modal-label">hard</div>
+    <input class="input" id="tpHard" placeholder="what was difficult today?">
+    <div class="modal-label">grateful</div>
+    <input class="input" id="tpGratitude" placeholder="what are you grateful for?">
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveTp()">save</button>
+  </div>
+</div>
+
+<!-- arnuioe 모달 -->
+<div class="modal-overlay" id="m-fw" onclick="closeModal('m-fw',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">arnuioe</div>
+    <textarea class="input" id="fwText" placeholder="write freely..." rows="8" style="resize:none;line-height:1.8;font-size:14px"></textarea>
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveFw()">save</button>
+  </div>
+</div>
+
+<!-- archive 모달 -->
+<div class="modal-overlay" id="m-archive" onclick="closeModal('m-archive',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">archive</div>
+    <label style="display:block;padding:14px;border-radius:var(--radius);background:var(--chip);text-align:center;cursor:pointer;font-size:14px;color:var(--text-mid);margin-bottom:8px">
+      + add photos
+      <input type="file" id="archiveFileInput" accept="image/*" multiple style="display:none" onchange="handleArchiveFiles(this)">
+    </label>
+    <div id="archiveFilePreview" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px"></div>
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveArchive()">save</button>
+  </div>
+</div>
+
+<!-- 루틴 추가 모달 -->
+<div class="modal-overlay" id="m-routine" onclick="closeModal('m-routine',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">NEW !</div>
+    <input class="input" id="routineName" placeholder="routine name">
+    <div class="modal-label">time (optional)</div>
+    <input class="input" type="time" id="routineTime">
+    <div class="modal-label">repeat</div>
+    <select class="input" id="routineRepeat">
+      <option value="daily">daily</option>
+      <option value="weekday">weekday (Mon–Fri)</option>
+      <option value="weekend">weekend (Sat–Sun)</option>
+      <option value="weekly">weekly</option>
+      <option value="anytime">anytime</option>
+    </select>
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveRoutine()">save</button>
+  </div>
+</div>
+
+<!-- 투두 추가 모달 -->
+<div class="modal-overlay" id="m-todo" onclick="closeModal('m-todo',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">NEW !</div>
+    <input class="input" id="todoTitle" placeholder="what to do?">
+    <div class="modal-label">category</div>
+    <div class="chips" id="todoCatChips" style="flex-wrap:wrap;gap:8px"></div>
+    <div class="modal-label">due date (optional)</div>
+    <input class="input" type="date" id="todoDue">
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveTodo()">save</button>
+  </div>
+</div>
+
+<!-- 투두 카테고리 관리 모달 -->
+<div class="modal-overlay" id="m-todo-cat" onclick="closeModal('m-todo-cat',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">categories</div>
+    <div id="todoCatList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input class="input" id="newTodoCatName" placeholder="new category name" style="flex:1">
+      <button onclick="addTodoCat()" style="padding:12px 16px;border-radius:var(--radius);background:var(--primary);color:white;border:none;cursor:pointer;font-size:14px;font-weight:700;white-space:nowrap">add</button>
+    </div>
+  </div>
+</div>
+
+<!-- 식단 날짜 선택 캘린더 -->
+<div class="modal-overlay" id="m-diet-cal" onclick="closeModal('m-diet-cal',event)">
+  <div class="modal-sheet" style="padding-bottom:calc(20px + env(safe-area-inset-bottom))">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" style="margin-bottom:0">select date</div>
+      <span id="dietCalSelectedLabel" style="font-size:12px;color:var(--primary);font-weight:600"></span>
+    </div>
+    <div style="background:var(--chip);border-radius:var(--radius);padding:12px 8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:0 4px">
+        <button onclick="dietCalMove(-1)" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);line-height:1">‹</button>
+        <span id="dietCalTitle" style="font-size:14px;font-weight:700;color:var(--text-dark)"></span>
+        <button onclick="dietCalMove(1)" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);line-height:1">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-light);padding:2px">M</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">T</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">W</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">T</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">F</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">S</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">S</span>
+      </div>
+      <div id="dietCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 다이어리 날짜 선택 캘린더 -->
+<div class="modal-overlay" id="m-diary-cal" onclick="closeModal('m-diary-cal',event)">
+  <div class="modal-sheet" style="padding-bottom:calc(20px + env(safe-area-inset-bottom))">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" style="margin-bottom:0">select date</div>
+      <span id="diaryCalSelectedLabel" style="font-size:12px;color:var(--primary);font-weight:600"></span>
+    </div>
+    <div style="background:var(--chip);border-radius:var(--radius);padding:12px 8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:0 4px">
+        <button onclick="diaryCalMove(-1)" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);line-height:1">‹</button>
+        <span id="diaryCalTitle" style="font-size:14px;font-weight:700;color:var(--text-dark)"></span>
+        <button onclick="diaryCalMove(1)" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);line-height:1">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-light);padding:2px">M</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">T</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">W</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">T</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">F</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">S</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">S</span>
+      </div>
+      <div id="diaryCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 루틴 날짜 선택 캘린더 -->
+<div class="modal-overlay" id="m-routine-cal" onclick="closeModal('m-routine-cal',event)">
+  <div class="modal-sheet" style="padding-bottom:calc(20px + env(safe-area-inset-bottom))">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" style="margin-bottom:0">select date</div>
+      <span id="routineCalSelectedLabel" style="font-size:12px;color:var(--primary);font-weight:600"></span>
+    </div>
+    <div style="background:var(--chip);border-radius:var(--radius);padding:12px 8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:0 4px">
+        <button onclick="routineCalMove(-1)" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);line-height:1">‹</button>
+        <span id="routineCalTitle" style="font-size:14px;font-weight:700;color:var(--text-dark)"></span>
+        <button onclick="routineCalMove(1)" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);line-height:1">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-light);padding:2px">M</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">T</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">W</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">T</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">F</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">S</span>
+        <span style="font-size:10px;color:var(--text-light);padding:2px">S</span>
+      </div>
+      <div id="routineCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 목표 칼로리 모달 -->
+<div class="modal-overlay" id="m-goal" onclick="closeModal('m-goal',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">Set Goal</div>
+    <div class="modal-label">Daily Calorie Goal (kcal)</div>
+    <input class="input" id="goalCalInput" type="number" placeholder="e.g. 1800">
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveGoal()">save</button>
+  </div>
+</div>
+
+<!-- 카테고리 추가 모달 -->
+<div class="modal-overlay" id="m-cat" onclick="closeModal('m-cat',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">NEW !</div>
+    <input class="input" id="catName" placeholder="category name">
+    <div class="modal-label">color</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px" id="colorPicker"></div>
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveCat()">save</button>
+  </div>
+</div>
+
+<!-- 캘린더 카테고리 관리 모달 -->
+<div class="modal-overlay" id="m-cal-cat" onclick="closeModal('m-cal-cat',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">categories</div>
+    <div id="calCatList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px">
+      <input class="input" id="newCalCatName" placeholder="new category name" style="flex:1">
+      <button onclick="addCalCatFromMgmt()" style="padding:12px 16px;border-radius:var(--radius);background:var(--primary);color:white;border:none;cursor:pointer;font-size:14px;font-weight:700;white-space:nowrap">add</button>
+    </div>
+  </div>
+</div>
+
+<!-- 월별 칼로리 모달 -->
+<div class="modal-overlay" id="m-diet-monthly" onclick="closeModal('m-diet-monthly',event)">
+  <div class="modal-sheet" style="padding-bottom:calc(28px + env(safe-area-inset-bottom))">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div class="modal-title" style="margin-bottom:0">monthly calories</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="dietMonthlyMove(-1)" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-mid);line-height:1">‹</button>
+        <span id="dietMonthlyTitle" style="font-size:13px;font-weight:700;color:var(--text-dark);min-width:80px;text-align:center"></span>
+        <button onclick="dietMonthlyMove(1)" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-mid);line-height:1">›</button>
+      </div>
+    </div>
+    <div id="dietMonthlySummary" style="display:flex;gap:8px;margin-bottom:16px"></div>
+    <div id="dietMonthlyGrid"></div>
+  </div>
+</div>
+
+<!-- 루틴 월별 달성률 모달 -->
+<div class="modal-overlay" id="m-routine-monthly" onclick="closeModal('m-routine-monthly',event)">
+  <div class="modal-sheet" style="padding-bottom:calc(28px + env(safe-area-inset-bottom))">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div class="modal-title" style="margin-bottom:0">monthly routine</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="routineMonthlyMove(-1)" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-mid);line-height:1">‹</button>
+        <span id="routineMonthlyTitle" style="font-size:13px;font-weight:700;color:var(--text-dark);min-width:80px;text-align:center"></span>
+        <button onclick="routineMonthlyMove(1)" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-mid);line-height:1">›</button>
+      </div>
+    </div>
+    <div id="routineMonthlySummary" style="display:flex;gap:8px;margin-bottom:16px"></div>
+    <div id="routineMonthlyGrid"></div>
+  </div>
+</div>
+
+<!-- 스케줄 전용 일정 추가 모달 -->
+<div class="modal-overlay" id="m-sch-event" onclick="closeModal('m-sch-event',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">NEW !</div>
+    <div class="modal-label">title</div>
+    <input class="input" id="schEvTitle" placeholder="schedule title">
+    <div class="modal-label">date</div>
+    <div id="schEvDateLabel" style="font-size:14px;font-weight:600;color:var(--primary);padding:6px 0 10px"></div>
+    <div class="modal-label">start time</div>
+    <input class="input" type="time" id="schEvTime">
+    <div class="modal-label">end time (optional)</div>
+    <input class="input" type="time" id="schEvEndTime">
+    <div class="modal-label">color</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px" id="schEvColorPicker"></div>
+    <div style="height:20px"></div>
+    <button class="btn-primary" onclick="saveSchEvent()">save</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// 데이터 저장소 (localStorage)
+// ══════════════════════════════════════════
+const KEY = 'life_diary_v2';
+let DB = loadDB();
+
+function loadDB() {
+  try {
+    let db = JSON.parse(localStorage.getItem(KEY));
+    if (!db) return getDefaultDB();
+    // Migrate todoCats: reset if old Korean names or has emoji field
+    const def = getDefaultDB();
+    if (!db.todoCats || db.todoCats.length === 0 ||
+        db.todoCats.some(c => c.emoji !== undefined) ||
+        db.todoCats.some(c => ['과제','공부','쇼핑','생활','취미'].includes(c.name))) {
+      db.todoCats = def.todoCats;
+    }
+    return db;
+  } catch { return getDefaultDB(); }
+}
+
+// ── JSONBin 동기화 ──
+const JB_KEY_STORE = 'arnuioe_jb_key';
+const JB_BIN_STORE = 'arnuioe_jb_bin';
+let jbKey = localStorage.getItem(JB_KEY_STORE) || null;
+let jbBin = localStorage.getItem(JB_BIN_STORE) || null;
+
+function saveDB() {
+  localStorage.setItem(KEY, JSON.stringify(DB));
+  if (jbKey && jbBin) jbPush();
+}
+
+function jbPush() {
+  if (!jbKey || !jbBin) return;
+  fetch('https://api.jsonbin.io/v3/b/' + jbBin, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': jbKey },
+    body: JSON.stringify(DB)
+  }).catch(() => {});
+}
+
+async function jbPull() {
+  if (!jbKey || !jbBin) return;
+  updateSyncStatus();
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + jbBin + '/latest', {
+      headers: { 'X-Master-Key': jbKey }
+    });
+    const json = await res.json();
+    const data = json.record;
+    if (data && typeof data === 'object' && data.categories) {
+      DB = data;
+      localStorage.setItem(KEY, JSON.stringify(DB));
+      renderCalendar(); renderDiary(); renderTodo();
+      if (typeof renderSchedule === 'function') renderSchedule();
+    }
+    updateSyncStatus('ok');
+  } catch(e) {
+    updateSyncStatus('err');
+  }
+}
+
+async function saveJbKey() {
+  const key = document.getElementById('jbKeyInput').value.trim();
+  if (!key) return;
+  updateSyncStatus();
+  try {
+    // 기존 bin 찾거나 새로 생성
+    const res = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': key, 'X-Bin-Name': 'arnuioe', 'X-Bin-Private': 'true' },
+      body: JSON.stringify(DB)
+    });
+    const json = await res.json();
+    if (!json.metadata?.id) throw new Error('bin 생성 실패');
+    jbKey = key; jbBin = json.metadata.id;
+    localStorage.setItem(JB_KEY_STORE, jbKey);
+    localStorage.setItem(JB_BIN_STORE, jbBin);
+    document.getElementById('fbSetupWrap').style.display = 'none';
+    document.getElementById('fbConnectedWrap').style.display = 'block';
+    await jbPull();
+  } catch(e) {
+    updateSyncStatus('err');
+  }
+}
+
+function disconnectFb() {
+  jbKey = null; jbBin = null;
+  localStorage.removeItem(JB_KEY_STORE);
+  localStorage.removeItem(JB_BIN_STORE);
+  document.getElementById('fbSetupWrap').style.display = 'block';
+  document.getElementById('fbConnectedWrap').style.display = 'none';
+  document.getElementById('syncStatus').textContent = '';
+}
+
+function updateSyncStatus(state) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  if (state === 'ok') { el.textContent = '✓ 동기화됨'; el.style.color = '#22a06b'; }
+  else if (state === 'err') { el.textContent = '⚠ 연결 실패'; el.style.color = '#c0143c'; }
+  else { el.textContent = '⟳ 동기화 중...'; el.style.color = 'var(--text-light)'; }
+}
+
+function getDefaultDB() {
+  const today = todayStr();
+  return {
+    categories: [
+      { id:'cat1', name:'arnuioe', color:'#BFAAB2' },
+      { id:'cat2', name:'friend',  color:'#D48392' },
+      { id:'cat3', name:'work',    color:'#204359' },
+      { id:'cat4', name:'skku',    color:'#732231' },
+      { id:'cat5', name:'study',   color:'#9BB1BF' },
+      { id:'cat6', name:'etc',     color:'#A39F87' },
+    ],
+    events: [
+      { id:'e1', title:'mid-term', startDate:today, catId:'cat5', isPeriod:false, time:'09:00' },
+      { id:'e2', title:'팀플 발표', startDate:offsetDate(5), endDate:offsetDate(6), catId:'cat4', isPeriod:true },
+      { id:'e3', title:'친구 약속', startDate:offsetDate(3), catId:'cat2', isPeriod:false },
+    ],
+    meals: [],          // { id, name, cal, carbs, prot, fat, type, date }
+    calorieGoal: 1800,
+    water: {},          // date -> L
+    diary: {},          // date -> { ootd, cam, finances[], tp, fw, vlogs[] }
+    schedule: [],       // { id, title, startHour, endHour, color, date }
+    routines: [
+      { id:'r1', name:'모닝 스트레칭', emoji:'🧘', time:'07:00', repeat:'daily', completedDates:[] },
+      { id:'r2', name:'책 30분 읽기', emoji:'📖', time:'09:00', repeat:'daily', completedDates:[] },
+      { id:'r3', name:'물 1.5L 마시기', emoji:'💧', time:'', repeat:'daily', completedDates:[] },
+      { id:'r4', name:'오늘의 사진 1장', emoji:'📸', time:'', repeat:'daily', completedDates:[] },
+      { id:'r5', name:'다이어리 쓰기', emoji:'✍️', time:'22:00', repeat:'daily', completedDates:[] },
+    ],
+    todos: [
+      { id:'t1', title:'경영통계 레포트 제출', catId:'tc1', dueDate:today, done:false },
+      { id:'t2', title:'경제학 2단원 복습', catId:'tc2', dueDate:offsetDate(2), done:false },
+      { id:'t3', title:'린넨 셔츠 구매하기', catId:'tc3', dueDate:offsetDate(3), done:false },
+      { id:'t4', title:'월세 이체', catId:'tc4', dueDate:offsetDate(3), done:false },
+      { id:'t5', title:'전공 실습 최종 발표 준비', catId:'tc1', dueDate:offsetDate(5), done:false },
+    ],
+    todoCats: [
+      { id:'tc1', name:'arnuioe',           color:'#BFAAB2' },
+      { id:'tc2', name:'경제학원론2',       color:'#732231' },
+      { id:'tc3', name:'니트디자인',        color:'#9BB1BF' },
+      { id:'tc4', name:'에스닉코스튬',      color:'#AB6C67' },
+      { id:'tc5', name:'패션광고및판매촉진',color:'#768555' },
+      { id:'tc6', name:'패션머천다이징기획',color:'#CFAA7D' },
+      { id:'tc7', name:'회계원리',          color:'#593A28' },
+      { id:'tc8', name:'미지정',            color:'#D9D9D9' },
+    ],
+    camModels: ['SONY ZV-E10', 'Ricoh GR IIIx', 'Fuji X100V'],
+  };
+}
+
+// ══════════════════════════════════════════
+// 날짜 유틸
+// ══════════════════════════════════════════
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+}
+function p2(n){ return String(n).padStart(2,'0'); }
+function offsetDate(days) {
+  const d = new Date(); d.setDate(d.getDate() + days);
+  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+}
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T00:00:00');
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+function fmtKorDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T00:00:00');
+  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  return `${d.getFullYear()}.${p2(d.getMonth()+1)}.${p2(d.getDate())}.${days[d.getDay()]}`;
+}
+function dDay(dateStr) {
+  const today = new Date(todayStr() + 'T00:00:00');
+  const target = new Date(dateStr + 'T00:00:00');
+  const diff = Math.round((target - today) / 86400000);
+  if (diff === 0) return 'D-Day';
+  if (diff > 0) return `D-${diff}`;
+  return `D+${-diff}`;
+}
+function uid() { return '_' + Math.random().toString(36).slice(2, 9); }
+
+// ══════════════════════════════════════════
+// 탭 전환
+// ══════════════════════════════════════════
+let curTab = 'calendar';
+const headers = {
+  calendar: ['', () => ''],
+  diet:     ['DIET', () => ''],
+  diary:    ['DIARY', () => ''],
+  schedule: ['SCHEDULE', () => ''],
+  routine:  ['ROUTINE', () => ''],
+  todo:     ['TO-DO', () => ''],
+};
+
+function goTab(tab, btn) {
+  curTab = tab;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-' + tab).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateHeader();
+  renderTab(tab);
+}
+
+function updateHeader() {
+  const dietBtn = document.getElementById('dietCalBtn');
+  const diaryBtn = document.getElementById('diaryCalBtn');
+  const calViewBtn = document.getElementById('calViewBtn');
+  const calAddBtn = document.getElementById('calAddBtn');
+  const dietViewBtn = document.getElementById('dietViewBtn');
+  const routineViewBtn = document.getElementById('routineViewBtn');
+  const fab = document.getElementById('fab');
+  if (curTab !== 'calendar') {
+    const h = headers[curTab];
+    document.getElementById('headerTitle').textContent = h[0];
+    document.getElementById('calNavBtns').style.display = 'none';
+    dietBtn.style.display = curTab === 'diet' ? 'inline-block' : 'none';
+    diaryBtn.style.display = curTab === 'diary' ? 'inline-block' : 'none';
+    document.getElementById('routineCalBtn').style.display = curTab === 'routine' ? 'inline-block' : 'none';
+    if (calViewBtn) calViewBtn.style.display = 'none';
+    if (calAddBtn) calAddBtn.style.display = 'none';
+    if (dietViewBtn) dietViewBtn.style.display = curTab === 'diet' ? 'inline-block' : 'none';
+    if (routineViewBtn) routineViewBtn.style.display = curTab === 'routine' ? 'inline-block' : 'none';
+    if (fab) fab.style.display = 'flex';
+  } else {
+    document.getElementById('calNavBtns').style.display = 'flex';
+    dietBtn.style.display = 'none';
+    diaryBtn.style.display = 'none';
+    document.getElementById('routineCalBtn').style.display = 'none';
+    if (calViewBtn) calViewBtn.style.display = 'inline-block';
+    if (calAddBtn) calAddBtn.style.display = 'inline-block';
+    if (dietViewBtn) dietViewBtn.style.display = 'none';
+    if (routineViewBtn) routineViewBtn.style.display = 'none';
+    if (fab) fab.style.display = 'none';
+  }
+  document.getElementById('headerTitle').style.color = 'var(--text-dark)';
+}
+
+function renderTab(tab) {
+  if (tab === 'calendar') renderCalendar();
+  if (tab === 'diet')     renderDiet();
+  if (tab === 'diary')    renderDiary();
+  if (tab === 'schedule') renderSchedule();
+  if (tab === 'routine')  renderRoutine();
+  if (tab === 'todo')     renderTodo();
+}
+
+// ══════════════════════════════════════════
+// CALENDAR
+// ══════════════════════════════════════════
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-based
+let selectedCatFilter = null;
+let calSelectedDate = null;
+
+function calMove(dir) {
+  calMonth += dir;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const monthNames = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  document.getElementById('headerTitle').textContent = monthNames[calMonth];
+
+  // 카테고리 칩
+  const chipsEl = document.getElementById('catChips');
+  chipsEl.innerHTML = `
+    <button class="chip ${!selectedCatFilter?'sel':''}" style="color:var(--primary);background:${!selectedCatFilter?'var(--primary-light)':'var(--chip)'}" onclick="filterCat(null,this)">all</button>
+    ${DB.categories.map(c=>`
+      <button class="chip ${selectedCatFilter===c.id?'sel':''}" style="color:${c.color};background:${selectedCatFilter===c.id?hexAlpha(c.color,0.15):'var(--chip)'}" onclick="filterCat('${c.id}',this)">${c.name}</button>
+    `).join('')}
+    <button class="chip" style="color:var(--primary);background:var(--chip)" onclick="openModal('m-cat')">+ add</button>
+    <button class="chip" style="color:var(--text-mid);background:var(--chip)" onclick="openCalCatMgmt()">⚙</button>
+  `;
+
+  // 달력 그리드
+  const firstDay = (new Date(calYear, calMonth, 1).getDay() + 6) % 7; // 월요일 시작
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+  const today = todayStr();
+
+  let cells = '';
+  let total = firstDay + daysInMonth;
+  if (total % 7 !== 0) total += 7 - (total % 7);
+
+  for (let i = 0; i < total; i++) {
+    let day, month, year, isOther = false;
+    if (i < firstDay) {
+      day = daysInPrev - firstDay + i + 1; month = calMonth - 1; year = calYear;
+      if (month < 0) { month = 11; year--; }
+      isOther = true;
+    } else if (i >= firstDay + daysInMonth) {
+      day = i - firstDay - daysInMonth + 1; month = calMonth + 1; year = calYear;
+      if (month > 11) { month = 0; year++; }
+      isOther = true;
+    } else {
+      day = i - firstDay + 1; month = calMonth; year = calYear;
+    }
+    const dateStr = `${year}-${p2(month+1)}-${p2(day)}`;
+    const isToday = dateStr === today;
+    const isSel = dateStr === calSelectedDate;
+    const events = getEventsForDate(dateStr);
+    const filteredEvents = selectedCatFilter
+      ? events.filter(e => e.catId === selectedCatFilter)
+      : events;
+
+    const dots = filteredEvents.slice(0,3)
+      .map(e => {
+        const cat = DB.categories.find(c=>c.id===e.catId);
+        return `<div class="cal-dot" style="background:${cat?cat.color:'#ddd'}"></div>`;
+      }).join('');
+
+    cells += `<div class="cal-cell${isOther?' other':''}${isToday?' today':''}${isSel?' sel':''}" onclick="selectCalDate('${dateStr}')">
+      <div class="cal-num">${day}</div>
+      ${dots ? `<div class="cal-dots">${dots}</div>` : ''}
+    </div>`;
+  }
+  document.getElementById('calGrid').innerHTML = cells;
+
+  // compact 상태 반영
+  document.getElementById('calCollapsible').style.display = calCompact ? 'none' : '';
+  document.getElementById('catChips').style.display = calCompact ? 'none' : '';
+  const calViewBtn = document.getElementById('calViewBtn');
+  if (calViewBtn) calViewBtn.textContent = calCompact ? '⊞' : '☰';
+
+  // Schedule 목록
+  renderScheduleList();
+}
+
+function selectCalDate(dateStr) {
+  calSelectedDate = calSelectedDate === dateStr ? null : dateStr;
+  renderCalendar();
+}
+
+// ── 캘린더 compact 토글 ──
+let calCompact = false;
+
+function toggleCalView() {
+  calCompact = !calCompact;
+  renderCalendar();
+}
+
+function renderScheduleList() {
+  const today = todayStr();
+  const titleEl = document.getElementById('scheduleTitle');
+  const listEl = document.getElementById('upcomingList');
+
+  if (calSelectedDate) {
+    // 선택한 날짜의 일정
+    const events = getEventsForDate(calSelectedDate).filter(e =>
+      !selectedCatFilter || e.catId === selectedCatFilter
+    );
+    titleEl.textContent = fmtDate(calSelectedDate);
+    listEl.innerHTML = events.length
+      ? events.map(e => renderEventCard(e, calSelectedDate)).join('')
+      : '<div class="empty-text">이 날은 일정이 없어요</div>';
+  } else {
+    // 전체 일정 (오늘 이후)
+    const all = DB.events
+      .filter(e => {
+        if (selectedCatFilter && e.catId !== selectedCatFilter) return false;
+        const end = e.endDate || e.startDate;
+        return end >= today;
+      })
+      .sort((a, b) => a.startDate.localeCompare(b.startDate));
+    titleEl.textContent = 'Schedule';
+    listEl.innerHTML = all.length
+      ? all.map(e => renderEventCard(e)).join('')
+      : '<div class="empty-text">다가오는 일정이 없어요</div>';
+  }
+}
+
+function filterCat(id) {
+  selectedCatFilter = id;
+  renderCalendar();
+}
+
+function getPeriodPos(dateStr, e) {
+  if (!e.isPeriod || !e.endDate) return 'single';
+  const isStart = dateStr === e.startDate;
+  const isEnd   = dateStr === e.endDate;
+  if (isStart && isEnd) return 'single';
+  if (isStart) return 'start';
+  if (isEnd)   return 'end';
+  return 'middle';
+}
+
+function getEventsForDate(dateStr) {
+  return DB.events.filter(e => {
+    if (e.repeatType) {
+      if (dateStr < e.startDate) return false;
+      if ((e.excludeDates || []).includes(dateStr)) return false;
+      const d = new Date(dateStr + 'T00:00:00');
+      const start = new Date(e.startDate + 'T00:00:00');
+      if (e.repeatType === 'weekly') {
+        return (e.repeatDays || []).includes(d.getDay());
+      }
+      if (e.repeatType === 'biweekly') {
+        const diffWeeks = Math.floor(Math.round((d - start) / 86400000) / 7);
+        return diffWeeks % 2 === 0 && (e.repeatDays || []).includes(d.getDay());
+      }
+      if (e.repeatType === 'monthly') {
+        return d.getDate() === start.getDate();
+      }
+      if (e.repeatType === 'yearly') {
+        return d.getMonth() === start.getMonth() && d.getDate() === start.getDate();
+      }
+      return false;
+    }
+    if (e.isPeriod && e.endDate) {
+      return dateStr >= e.startDate && dateStr <= e.endDate;
+    }
+    return e.startDate === dateStr;
+  });
+}
+
+function repeatTypeLabel(t) {
+  return { weekly:'weekly', biweekly:'biweekly', monthly:'monthly', yearly:'yearly' }[t] || t;
+}
+
+function renderEventCard(e, dateStr) {
+  const cat = DB.categories.find(c => c.id === e.catId) || { color:'#999', name:'' };
+  const periodLabel = e.repeatType
+    ? `${fmtDate(dateStr || e.startDate)} · ${repeatTypeLabel(e.repeatType)}`
+    : e.isPeriod && e.endDate
+      ? `${fmtDate(e.startDate)} ~ ${fmtDate(e.endDate)}`
+      : fmtDate(e.startDate) + (e.time ? ` · ${e.time}` : '');
+  const delFn = (e.repeatType && dateStr)
+    ? `deleteEventOccurrence('${e.id}','${dateStr}')`
+    : `deleteEvent('${e.id}')`;
+  const editFn = (e.repeatType && dateStr)
+    ? `editEventOccurrence('${e.id}','${dateStr}')`
+    : `openEventEditModal('${e.id}')`;
+  return `<div class="event-card" style="background:${hexAlpha(cat.color,0.08)};cursor:pointer" onclick="${editFn}">
+    <div class="event-bar" style="background:${cat.color}"></div>
+    <div class="event-info">
+      <div class="event-name">${e.title}</div>
+      <div class="event-meta">${periodLabel}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <div class="event-dday" style="background:${hexAlpha(cat.color,0.18)};color:${cat.color}">${dDay(e.repeatType && dateStr ? dateStr : e.startDate)}</div>
+      <button onclick="event.stopPropagation();${delFn}" style="background:none;border:none;color:var(--text-light);cursor:pointer;font-size:15px;padding:0 3px;line-height:1">×</button>
+    </div>
+  </div>`;
+}
+
+let evPickerYear = new Date().getFullYear();
+let evPickerMonth = new Date().getMonth();
+let evPickerDates = new Set();
+let evRepeatDays = new Set();
+let editEventId = null;
+
+function openEventEditModal(id) {
+  const e = DB.events.find(x => x.id === id);
+  if (!e) return;
+  editEventId = id;
+  // reset modal state
+  evPickerDates = new Set([e.startDate]);
+  evPickerYear = new Date(e.startDate + 'T00:00:00').getFullYear();
+  evPickerMonth = new Date(e.startDate + 'T00:00:00').getMonth();
+  evRepeatDays = new Set();
+  document.getElementById('evTitle').value = e.title;
+  document.getElementById('evTime').value = e.time || '';
+  // period toggle
+  const periodToggle = document.getElementById('evPeriodToggle');
+  if (e.isPeriod) { periodToggle.classList.add('on'); document.getElementById('evEndDateWrap').style.display = ''; }
+  else { periodToggle.classList.remove('on'); document.getElementById('evEndDateWrap').style.display = 'none'; }
+  document.getElementById('evEndDate').value = e.endDate || '';
+  document.getElementById('evEndTime').value = e.endTime || '';
+  // repeat toggle
+  const repeatToggle = document.getElementById('evRepeatToggle');
+  if (e.repeatType) {
+    repeatToggle.classList.add('on');
+    document.getElementById('evRepeatWrap').style.display = 'block';
+    document.getElementById('evRepeatType').value = e.repeatType;
+    evRepeatDays = new Set(e.repeatDays || []);
+  } else {
+    repeatToggle.classList.remove('on');
+    document.getElementById('evRepeatWrap').style.display = 'none';
+    evRepeatDays = new Set();
+  }
+  // category chips
+  document.getElementById('evCatChips').innerHTML = DB.categories.map(c => {
+    const isSel = c.id === e.catId;
+    return `<button class="chip ${isSel?'sel':''}" style="color:${c.color};background:${isSel?hexAlpha(c.color,0.15):'var(--chip)'}" data-cat-id="${c.id}" onclick="selectChip(this,'evCatChips')">${c.name}</button>`;
+  }).join('');
+  renderEvPicker();
+  renderRepeatDayBtns();
+  document.getElementById('evModalTitle').textContent = 'edit event';
+  openModal('m-event');
+}
+
+function deleteEvent(id) {
+  DB.events = DB.events.filter(e => e.id !== id);
+  saveDB(); renderCalendar();
+  if (curTab === 'schedule') renderSchedule();
+}
+
+function evPickerMove(dir) {
+  evPickerMonth += dir;
+  if (evPickerMonth < 0) { evPickerMonth = 11; evPickerYear--; }
+  if (evPickerMonth > 11) { evPickerMonth = 0; evPickerYear++; }
+  renderEvPicker();
+}
+
+function evPickerToggle(dateStr) {
+  if (evPickerDates.has(dateStr)) evPickerDates.delete(dateStr);
+  else evPickerDates.add(dateStr);
+  renderEvPicker();
+}
+
+function renderEvPicker() {
+  const mn = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  document.getElementById('evPickerTitle').textContent = `${mn[evPickerMonth]} ${evPickerYear}`;
+  const firstDay = (new Date(evPickerYear, evPickerMonth, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(evPickerYear, evPickerMonth + 1, 0).getDate();
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${evPickerYear}-${p2(evPickerMonth+1)}-${p2(d)}`;
+    const sel = evPickerDates.has(ds);
+    html += `<div onclick="evPickerToggle('${ds}')" style="width:100%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;background:${sel?'var(--primary)':'transparent'};color:${sel?'white':'var(--text-dark)'};font-weight:${sel?700:400}">${d}</div>`;
+  }
+  document.getElementById('evPickerGrid').innerHTML = html;
+}
+
+function renderRepeatDayBtns() {
+  const type = document.getElementById('evRepeatType')?.value || 'weekly';
+  const container = document.getElementById('evRepeatDayBtns');
+  if (type === 'monthly' || type === 'yearly') { container.innerHTML = ''; return; }
+  const labels = ['M','T','W','T','F','S','S'];
+  const vals = [1,2,3,4,5,6,0];
+  container.innerHTML = labels.map((lbl, i) => {
+    const val = vals[i];
+    const sel = evRepeatDays.has(val);
+    return `<button onclick="toggleRepeatDay(${val})" style="width:34px;height:34px;border-radius:50%;border:1.5px solid ${sel?'var(--primary)':'var(--divider)'};background:${sel?'var(--primary)':'white'};color:${sel?'white':'var(--text-mid)'};font-size:11px;font-weight:600;cursor:pointer">${lbl}</button>`;
+  }).join('');
+}
+
+function toggleRepeatDay(val) {
+  if (evRepeatDays.has(val)) evRepeatDays.delete(val);
+  else evRepeatDays.add(val);
+  renderRepeatDayBtns();
+}
+
+function saveEvent() {
+  const title = v('evTitle');
+  const catId = document.querySelector('#evCatChips .chip.sel')?.dataset.catId;
+  const isPeriod = document.getElementById('evPeriodToggle').classList.contains('on');
+  const isRepeat = document.getElementById('evRepeatToggle').classList.contains('on');
+  const repeatType = isRepeat ? document.getElementById('evRepeatType').value : null;
+  const repeatDays = (isRepeat && (repeatType === 'weekly' || repeatType === 'biweekly')) ? [...evRepeatDays] : null;
+  const time = v('evTime') || null;
+  const endDate = isPeriod ? v('evEndDate') : null;
+  const endTime = isPeriod ? (v('evEndTime') || null) : null;
+
+  if (!title || evPickerDates.size === 0) return alert('제목과 날짜를 선택해줘!');
+
+  const dates = [...evPickerDates].sort();
+  const finalCatId = catId || DB.categories[0]?.id;
+
+  if (editEventId) {
+    const ev = DB.events.find(x => x.id === editEventId);
+    if (ev) {
+      ev.title = title; ev.catId = finalCatId; ev.time = time;
+      ev.isPeriod = isPeriod; ev.startDate = dates[0];
+      ev.endDate = isPeriod ? (endDate || dates[dates.length-1]) : null;
+      ev.endTime = endTime || null;
+      ev.repeatType = repeatType; ev.repeatDays = repeatDays;
+    }
+    editEventId = null;
+  } else {
+    if (isRepeat) {
+      DB.events.push({ id: uid(), title, startDate: dates[0], catId: finalCatId, isPeriod: false, time, repeatType, repeatDays });
+    } else if (isPeriod) {
+      const startDate = dates[0];
+      const finalEndDate = endDate || dates[dates.length - 1];
+      DB.events.push({ id: uid(), title, startDate, endDate: finalEndDate, catId: finalCatId, isPeriod: true, time, endTime });
+    } else {
+      dates.forEach(date => {
+        DB.events.push({ id: uid(), title, startDate: date, catId: finalCatId, isPeriod: false, time });
+      });
+    }
+  }
+
+  saveDB();
+  closeModal('m-event');
+  renderCalendar();
+  if (curTab === 'schedule') renderSchedule();
+}
+
+// ══════════════════════════════════════════
+// DIET
+// ══════════════════════════════════════════
+let activeMealType = 'breakfast';
+let dietSelectedDate = todayStr();
+let mealPhotoData = null;
+let editMealId = null;
+
+const mealTypes = [
+  { id:'breakfast', label:'Breakfast' },
+  { id:'lunch',     label:'Lunch' },
+  { id:'dinner',    label:'Dinner' },
+  { id:'snack',     label:'Snack' },
+  { id:'latenight', label:'Late Night' },
+];
+
+function renderDietDateScroll() {
+  const dowMap = ['S','M','T','W','T','F','S'];
+  const todayDate = new Date();
+  const todayDs = todayStr();
+  let html = '';
+  for (let i = -13; i <= 13; i++) {
+    const d = new Date(todayDate); d.setDate(todayDate.getDate() + i);
+    const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+    const isSel = ds === dietSelectedDate;
+    const isToday = ds === todayDs;
+    html += `<div class="date-cell ${isSel?'today-sel':''}" onclick="selectDietDate('${ds}')" style="${isToday&&!isSel?'border:2px solid var(--accent)':''}">
+      <div class="dc-dow">${dowMap[d.getDay()]}</div>
+      <div class="dc-num">${d.getDate()}</div>
+    </div>`;
+  }
+  document.getElementById('dietDateScroll').innerHTML = html;
+  setTimeout(() => {
+    const container = document.getElementById('dietDateScroll');
+    const selCell = container.querySelector('.today-sel');
+    if (selCell) {
+      const cellLeft = selCell.offsetLeft;
+      const cellWidth = selCell.offsetWidth;
+      const containerWidth = container.offsetWidth;
+      container.scrollLeft = cellLeft - (containerWidth / 2) + (cellWidth / 2);
+    } else {
+      // center today's cell
+      const allCells = container.querySelectorAll('.date-cell');
+      const todayCell = allCells[13]; // index 13 = today (i=0)
+      if (todayCell) container.scrollLeft = todayCell.offsetLeft - containerWidth / 2 + todayCell.offsetWidth / 2;
+    }
+  }, 50);
+}
+
+function selectDietDate(ds) {
+  dietSelectedDate = ds;
+  renderDiet();
+}
+
+function renderDiet() {
+  renderDietDateScroll();
+  const date = dietSelectedDate;
+  const meals = DB.meals.filter(m => m.date === date);
+  const total = meals.reduce((s,m) => s + (m.cal||0), 0);
+  const goal = DB.calorieGoal;
+  const carbs = meals.reduce((s,m) => s + (m.carbs||0), 0);
+  const prot  = meals.reduce((s,m) => s + (m.prot||0), 0);
+  const fat   = meals.reduce((s,m) => s + (m.fat||0), 0);
+  const water = DB.water[date] || 0;
+
+  document.getElementById('totalCal').textContent = total.toLocaleString();
+  document.getElementById('calGoalSub').textContent = `Goal ${goal.toLocaleString()} kcal · ${Math.max(0, goal-total).toLocaleString()} kcal left`;
+  document.getElementById('calProg').style.width = Math.min(100, total/goal*100) + '%';
+  document.getElementById('mCarbs').textContent = carbs.toFixed(1) + 'g';
+  document.getElementById('mProt').textContent = prot.toFixed(1) + 'g';
+  document.getElementById('mFat').textContent = fat.toFixed(1) + 'g';
+  document.getElementById('mWater').textContent = water.toFixed(1) + 'L';
+
+  let html = '<div class="meal-scroll">';
+  mealTypes.forEach(mt => {
+    const items = meals.filter(m => m.type === mt.id);
+    const mtCal = items.reduce((s,m) => s + (m.cal||0), 0);
+    html += `<div class="meal-card">
+      <div class="meal-card-hdr">
+        <span class="meal-card-title">${mt.label}</span>
+        ${mtCal ? `<span class="meal-cal-badge">${mtCal} kcal</span>` : ''}
+      </div>
+      ${items.map(m => `
+        <div class="meal-photo-item" onclick="openMealEditModal('${m.id}')" style="cursor:pointer">
+          ${m.photo
+            ? `<img src="${m.photo}">`
+            : `<div class="meal-photo-emoji">${mealEmoji(mt.id)}</div>`}
+          <div class="meal-photo-info">
+            <div class="meal-photo-name">${m.name}</div>
+            <div class="meal-photo-cal">${m.cal} kcal${m.time?' · '+m.time:''}</div>
+          </div>
+          <button class="meal-del-btn" onclick="event.stopPropagation();delMeal('${m.id}')">×</button>
+        </div>
+      `).join('')}
+      <button class="add-btn" onclick="openMealModal('${mt.id}','${mt.label}')">+ add</button>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('mealSections').innerHTML = html;
+}
+
+function mealEmoji(type) {
+  return { breakfast:'🍳', lunch:'🍜', dinner:'🥗', snack:'🍎', latenight:'🍕' }[type] || '🍽️';
+}
+
+function openWaterModal() {
+  document.getElementById('waterInput').value = DB.water[dietSelectedDate] || '';
+  openModal('m-water');
+}
+function addWater(amt) {
+  const cur = parseFloat(document.getElementById('waterInput').value) || 0;
+  document.getElementById('waterInput').value = Math.round((cur + amt) * 100) / 100;
+}
+function saveWater() {
+  const val = parseFloat(document.getElementById('waterInput').value) || 0;
+  DB.water[dietSelectedDate] = val;
+  saveDB(); renderDiet();
+  closeModal('m-water');
+}
+
+function openMealModal(type, label) {
+  editMealId = null;
+  activeMealType = type;
+  mealPhotoData = null;
+  ['mealName','mealCal','mealCarbs','mealProt','mealFat','mealTime'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('mealDate').value = dietSelectedDate;
+  const photoInput = document.getElementById('mealPhoto');
+  if (photoInput) photoInput.value = '';
+  document.getElementById('mealPhotoPreview').innerHTML = '';
+  document.getElementById('mealModalTitle').textContent = 'NEW !';
+  openModal('m-meal');
+}
+function openMealEditModal(id) {
+  const m = DB.meals.find(x => x.id === id);
+  if (!m) return;
+  editMealId = id;
+  activeMealType = m.type;
+  mealPhotoData = m.photo || null;
+  document.getElementById('mealName').value = m.name || '';
+  document.getElementById('mealCal').value = m.cal || '';
+  document.getElementById('mealCarbs').value = m.carbs || '';
+  document.getElementById('mealProt').value = m.prot || '';
+  document.getElementById('mealFat').value = m.fat || '';
+  document.getElementById('mealTime').value = m.time || '';
+  document.getElementById('mealDate').value = m.date || dietSelectedDate;
+  document.getElementById('mealPhotoPreview').innerHTML = m.photo
+    ? `<img src="${m.photo}" style="width:100%;height:100px;object-fit:cover;border-radius:10px;margin-top:8px">` : '';
+  document.getElementById('mealModalTitle').textContent = 'edit meal';
+  openModal('m-meal');
+}
+
+function previewMealPhoto(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      mealPhotoData = e.target.result;
+      document.getElementById('mealPhotoPreview').innerHTML =
+        `<img src="${e.target.result}" style="width:100%;height:100px;object-fit:cover;border-radius:10px;margin-top:8px">`;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function saveMeal() {
+  const name = v('mealName');
+  const cal  = parseInt(v('mealCal')) || 0;
+  if (!name) return alert('menu name을 입력해줘!');
+  if (editMealId) {
+    const m = DB.meals.find(x => x.id === editMealId);
+    if (m) {
+      m.name = name; m.cal = cal;
+      m.carbs = parseFloat(v('mealCarbs')) || 0;
+      m.prot  = parseFloat(v('mealProt')) || 0;
+      m.fat   = parseFloat(v('mealFat')) || 0;
+      m.time  = v('mealTime') || null;
+      m.date  = v('mealDate') || dietSelectedDate;
+      if (mealPhotoData) m.photo = mealPhotoData;
+    }
+    editMealId = null;
+  } else {
+    DB.meals.push({
+      id: uid(), name, cal,
+      carbs: parseFloat(v('mealCarbs')) || 0,
+      prot:  parseFloat(v('mealProt')) || 0,
+      fat:   parseFloat(v('mealFat')) || 0,
+      time: v('mealTime') || null,
+      photo: mealPhotoData || null,
+      type: activeMealType, date: v('mealDate') || dietSelectedDate,
+    });
+  }
+  saveDB();
+  closeModal('m-meal');
+  renderDiet();
+  updateHeader();
+}
+
+function openGoalModal() {
+  document.getElementById('goalCalInput').value = DB.calorieGoal;
+  openModal('m-goal');
+}
+
+function saveGoal() {
+  const goal = parseInt(v('goalCalInput')) || 1800;
+  DB.calorieGoal = goal;
+  saveDB();
+  closeModal('m-goal');
+  renderDiet();
+}
+
+// 식단 날짜 캘린더
+let dietCalYear = new Date().getFullYear();
+let dietCalMonth = new Date().getMonth();
+
+function openDietCal() {
+  const d = new Date(dietSelectedDate + 'T00:00:00');
+  dietCalYear = d.getFullYear();
+  dietCalMonth = d.getMonth();
+  renderDietCal();
+  openModal('m-diet-cal');
+}
+
+function dietCalMove(dir) {
+  dietCalMonth += dir;
+  if (dietCalMonth < 0) { dietCalMonth = 11; dietCalYear--; }
+  if (dietCalMonth > 11) { dietCalMonth = 0; dietCalYear++; }
+  renderDietCal();
+}
+
+// ── 월별 칼로리 뷰 ──
+let dietMonthlyYear = new Date().getFullYear();
+let dietMonthlyMonth = new Date().getMonth();
+
+function openDietMonthly() {
+  dietMonthlyYear = new Date().getFullYear();
+  dietMonthlyMonth = new Date().getMonth();
+  renderDietMonthly();
+  openModal('m-diet-monthly');
+}
+
+function dietMonthlyMove(dir) {
+  dietMonthlyMonth += dir;
+  if (dietMonthlyMonth < 0) { dietMonthlyMonth = 11; dietMonthlyYear--; }
+  if (dietMonthlyMonth > 11) { dietMonthlyMonth = 0; dietMonthlyYear++; }
+  renderDietMonthly();
+}
+
+function renderDietMonthly() {
+  const mn = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const fullMn = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  document.getElementById('dietMonthlyTitle').textContent = `${mn[dietMonthlyMonth]} ${dietMonthlyYear}`;
+
+  const daysInMonth = new Date(dietMonthlyYear, dietMonthlyMonth + 1, 0).getDate();
+  const today = todayStr();
+  const goal = DB.calorieGoal || 1800;
+
+  // 이번 달 데이터 수집
+  let totalCal = 0, recordedDays = 0, overDays = 0;
+  const dayData = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${dietMonthlyYear}-${p2(dietMonthlyMonth+1)}-${p2(d)}`;
+    const cal = DB.meals.filter(m => m.date === ds).reduce((s,m) => s + (m.cal||0), 0);
+    if (cal > 0) { totalCal += cal; recordedDays++; if (cal > goal) overDays++; }
+    dayData.push({ ds, d, cal });
+  }
+
+  // 요약 카드
+  const avgCal = recordedDays ? Math.round(totalCal / recordedDays) : 0;
+  document.getElementById('dietMonthlySummary').innerHTML = `
+    <div style="flex:1;background:var(--chip);border-radius:var(--radius);padding:12px;text-align:center">
+      <div style="font-size:18px;font-weight:800;color:var(--text-dark)">${avgCal.toLocaleString()}</div>
+      <div style="font-size:10px;color:var(--text-light);margin-top:2px">avg kcal</div>
+    </div>
+    <div style="flex:1;background:var(--chip);border-radius:var(--radius);padding:12px;text-align:center">
+      <div style="font-size:18px;font-weight:800;color:var(--text-dark)">${recordedDays}</div>
+      <div style="font-size:10px;color:var(--text-light);margin-top:2px">recorded days</div>
+    </div>
+    <div style="flex:1;background:var(--chip);border-radius:var(--radius);padding:12px;text-align:center">
+      <div style="font-size:18px;font-weight:800;color:${overDays>0?'#ef5350':'var(--text-dark)'}">${overDays}</div>
+      <div style="font-size:10px;color:var(--text-light);margin-top:2px">over goal</div>
+    </div>
+  `;
+
+  // 날짜별 바 차트
+  const maxCal = Math.max(goal, ...dayData.map(d => d.cal), 1);
+  let html = '';
+  dayData.forEach(({ ds, d, cal }) => {
+    const isToday = ds === today;
+    const barPct = cal ? Math.min(100, cal / maxCal * 100) : 0;
+    const overGoal = cal > goal;
+    const barColor = cal === 0 ? 'var(--divider)' : overGoal ? '#ef5350' : 'var(--primary)';
+    const calLabel = cal > 0 ? (cal >= 1000 ? (cal/1000).toFixed(1)+'k' : cal) : '';
+    html += `
+      <div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--chip)" onclick="selectDietMonthlyDay('${ds}')">
+        <div style="width:28px;font-size:12px;font-weight:${isToday?700:500};color:${isToday?'var(--accent)':'var(--text-mid)'};text-align:right;flex-shrink:0">${d}</div>
+        <div style="flex:1;height:18px;background:var(--chip);border-radius:4px;overflow:hidden;position:relative">
+          <div style="height:100%;width:${barPct}%;background:${barColor};border-radius:4px;transition:width .3s"></div>
+          ${cal>0?`<span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:600;color:${overGoal?'#ef5350':'var(--text-mid)'}">${calLabel}</span>`:''}
+        </div>
+        <div style="width:44px;font-size:11px;font-weight:600;color:${overGoal?'#ef5350':cal>0?'var(--text-dark)':'var(--text-light)'};text-align:right;flex-shrink:0">${cal>0?cal.toLocaleString():'-'}</div>
+      </div>`;
+  });
+  document.getElementById('dietMonthlyGrid').innerHTML = `<div style="padding-bottom:4px">${html}</div>`;
+}
+
+function selectDietMonthlyDay(ds) {
+  dietSelectedDate = ds;
+  closeModal('m-diet-monthly');
+  renderDiet();
+}
+
+function renderDietCal() {
+  const mn = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  document.getElementById('dietCalTitle').textContent = `${mn[dietCalMonth]} ${dietCalYear}`;
+  // 선택된 날짜 레이블
+  const sd = new Date(dietSelectedDate + 'T00:00:00');
+  const dowNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  document.getElementById('dietCalSelectedLabel').textContent =
+    `${sd.getFullYear()}.${p2(sd.getMonth()+1)}.${p2(sd.getDate())} ${dowNames[sd.getDay()]}`;
+
+  const firstDay = (new Date(dietCalYear, dietCalMonth, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(dietCalYear, dietCalMonth + 1, 0).getDate();
+  const today = todayStr();
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${dietCalYear}-${p2(dietCalMonth+1)}-${p2(d)}`;
+    const isToday = ds === today;
+    const isSel = ds === dietSelectedDate;
+    const hasMeals = DB.meals.some(m => m.date === ds);
+    html += `<div onclick="selectDietCalDate('${ds}')" style="padding:3px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;
+        background:${isSel?'var(--accent)':isToday?'var(--accent-light)':'transparent'};
+        color:${isSel?'white':isToday?'var(--accent)':'var(--text-dark)'};
+        font-weight:${isSel||isToday?700:400}">${d}</div>
+      <div style="width:4px;height:4px;border-radius:50%;background:${hasMeals?(isSel?'white':'var(--accent)'):'transparent'}"></div>
+    </div>`;
+  }
+  document.getElementById('dietCalGrid').innerHTML = html;
+}
+
+function selectDietCalDate(ds) {
+  dietSelectedDate = ds;
+  closeModal('m-diet-cal');
+  renderDiet();
+}
+
+// ── DIARY CALENDAR ──
+let diaryCalYear = new Date().getFullYear();
+let diaryCalMonth = new Date().getMonth();
+
+function openDiaryCal() {
+  const d = new Date(diarySelectedDate + 'T00:00:00');
+  diaryCalYear = d.getFullYear();
+  diaryCalMonth = d.getMonth();
+  renderDiaryCal();
+  openModal('m-diary-cal');
+}
+
+function diaryCalMove(dir) {
+  diaryCalMonth += dir;
+  if (diaryCalMonth < 0) { diaryCalMonth = 11; diaryCalYear--; }
+  if (diaryCalMonth > 11) { diaryCalMonth = 0; diaryCalYear++; }
+  renderDiaryCal();
+}
+
+function renderDiaryCal() {
+  const mn = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  document.getElementById('diaryCalTitle').textContent = `${mn[diaryCalMonth]} ${diaryCalYear}`;
+  const sd = new Date(diarySelectedDate + 'T00:00:00');
+  const dowNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  document.getElementById('diaryCalSelectedLabel').textContent =
+    `${sd.getFullYear()}.${p2(sd.getMonth()+1)}.${p2(sd.getDate())} ${dowNames[sd.getDay()]}`;
+
+  const firstDay = (new Date(diaryCalYear, diaryCalMonth, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(diaryCalYear, diaryCalMonth + 1, 0).getDate();
+  const today = todayStr();
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${diaryCalYear}-${p2(diaryCalMonth+1)}-${p2(d)}`;
+    const isToday = ds === today;
+    const isSel = ds === diarySelectedDate;
+    const hasDiary = DB.diary && DB.diary[ds] &&
+      (DB.diary[ds].ootd || (DB.diary[ds].finances && DB.diary[ds].finances.length) ||
+       DB.diary[ds].tp || DB.diary[ds].fw);
+    html += `<div onclick="selectDiaryCalDate('${ds}')" style="padding:3px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;
+        background:${isSel?'var(--accent)':isToday?'var(--accent-light)':'transparent'};
+        color:${isSel?'white':isToday?'var(--accent)':'var(--text-dark)'};
+        font-weight:${isSel||isToday?700:400}">${d}</div>
+      <div style="width:4px;height:4px;border-radius:50%;background:${hasDiary?(isSel?'white':'var(--accent)'):'transparent'}"></div>
+    </div>`;
+  }
+  document.getElementById('diaryCalGrid').innerHTML = html;
+}
+
+function selectDiaryCalDate(ds) {
+  diarySelectedDate = ds;
+  closeModal('m-diary-cal');
+  renderDiary();
+}
+
+// ── ROUTINE CALENDAR ──
+let routineCalYear = new Date().getFullYear();
+let routineCalMonth = new Date().getMonth();
+
+function openRoutineCal() {
+  const d = new Date(routineSelectedDate + 'T00:00:00');
+  routineCalYear = d.getFullYear();
+  routineCalMonth = d.getMonth();
+  renderRoutineCal();
+  openModal('m-routine-cal');
+}
+
+function routineCalMove(dir) {
+  routineCalMonth += dir;
+  if (routineCalMonth < 0) { routineCalMonth = 11; routineCalYear--; }
+  if (routineCalMonth > 11) { routineCalMonth = 0; routineCalYear++; }
+  renderRoutineCal();
+}
+
+// ── 루틴 월별 달성률 ──
+let routineMonthlyYear = new Date().getFullYear();
+let routineMonthlyMonth = new Date().getMonth();
+
+function openRoutineMonthly() {
+  routineMonthlyYear = new Date().getFullYear();
+  routineMonthlyMonth = new Date().getMonth();
+  renderRoutineMonthly();
+  openModal('m-routine-monthly');
+}
+
+function routineMonthlyMove(dir) {
+  routineMonthlyMonth += dir;
+  if (routineMonthlyMonth < 0) { routineMonthlyMonth = 11; routineMonthlyYear--; }
+  if (routineMonthlyMonth > 11) { routineMonthlyMonth = 0; routineMonthlyYear++; }
+  renderRoutineMonthly();
+}
+
+function renderRoutineMonthly() {
+  const mn = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  document.getElementById('routineMonthlyTitle').textContent = `${mn[routineMonthlyMonth]} ${routineMonthlyYear}`;
+
+  const daysInMonth = new Date(routineMonthlyYear, routineMonthlyMonth + 1, 0).getDate();
+  const today = todayStr();
+  const total = DB.routines.length;
+
+  let totalRate = 0, recordedDays = 0, perfectDays = 0;
+  const dayData = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${routineMonthlyYear}-${p2(routineMonthlyMonth+1)}-${p2(d)}`;
+    if (ds > today) { dayData.push({ ds, d, rate: -1 }); continue; }
+    const done = DB.routines.filter(r => (r.completedDates||[]).includes(ds)).length;
+    const rate = total ? Math.round(done / total * 100) : 0;
+    if (done > 0) { totalRate += rate; recordedDays++; }
+    if (rate === 100) perfectDays++;
+    dayData.push({ ds, d, done, rate });
+  }
+
+  const avgRate = recordedDays ? Math.round(totalRate / recordedDays) : 0;
+  document.getElementById('routineMonthlySummary').innerHTML = `
+    <div style="flex:1;background:var(--chip);border-radius:var(--radius);padding:12px;text-align:center">
+      <div style="font-size:18px;font-weight:800;color:var(--text-dark)">${avgRate}%</div>
+      <div style="font-size:10px;color:var(--text-light);margin-top:2px">avg rate</div>
+    </div>
+    <div style="flex:1;background:var(--chip);border-radius:var(--radius);padding:12px;text-align:center">
+      <div style="font-size:18px;font-weight:800;color:var(--text-dark)">${recordedDays}</div>
+      <div style="font-size:10px;color:var(--text-light);margin-top:2px">active days</div>
+    </div>
+    <div style="flex:1;background:var(--chip);border-radius:var(--radius);padding:12px;text-align:center">
+      <div style="font-size:18px;font-weight:800;color:${perfectDays>0?'var(--accent)':'var(--text-dark)'}">${perfectDays}</div>
+      <div style="font-size:10px;color:var(--text-light);margin-top:2px">perfect days</div>
+    </div>
+  `;
+
+  let html = '';
+  dayData.forEach(({ ds, d, done, rate }) => {
+    const isToday = ds === today;
+    const isFuture = rate === -1;
+    const barColor = isFuture ? 'transparent' : rate === 100 ? 'var(--accent)' : rate >= 50 ? 'var(--primary)' : '#C8C4BE';
+    const rateLabel = isFuture ? '' : rate + '%';
+    html += `
+      <div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--chip)" onclick="${!isFuture?`selectRoutineMonthlyDay('${ds}')`:''}" style="cursor:${isFuture?'default':'pointer'}">
+        <div style="width:28px;font-size:12px;font-weight:${isToday?700:500};color:${isToday?'var(--accent)':'var(--text-mid)'};text-align:right;flex-shrink:0">${d}</div>
+        <div style="flex:1;height:18px;background:var(--chip);border-radius:4px;overflow:hidden;position:relative">
+          ${!isFuture?`<div style="height:100%;width:${rate}%;background:${barColor};border-radius:4px;transition:width .3s"></div>`:''}
+          ${!isFuture&&rate>0?`<span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:600;color:var(--text-mid)">${rateLabel}</span>`:''}
+        </div>
+        <div style="width:36px;font-size:11px;font-weight:600;color:${rate===100?'var(--accent)':rate>0?'var(--text-dark)':'var(--text-light)'};text-align:right;flex-shrink:0">${isFuture?'':rate+'%'}</div>
+      </div>`;
+  });
+  document.getElementById('routineMonthlyGrid').innerHTML = `<div style="padding-bottom:4px">${html}</div>`;
+}
+
+function selectRoutineMonthlyDay(ds) {
+  routineSelectedDate = ds;
+  closeModal('m-routine-monthly');
+  renderRoutine();
+}
+
+function renderRoutineCal() {
+  const mn = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  document.getElementById('routineCalTitle').textContent = `${mn[routineCalMonth]} ${routineCalYear}`;
+  const sd = new Date(routineSelectedDate + 'T00:00:00');
+  const dowNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  document.getElementById('routineCalSelectedLabel').textContent =
+    `${sd.getFullYear()}.${p2(sd.getMonth()+1)}.${p2(sd.getDate())} ${dowNames[sd.getDay()]}`;
+
+  const firstDay = (new Date(routineCalYear, routineCalMonth, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(routineCalYear, routineCalMonth + 1, 0).getDate();
+  const today = todayStr();
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${routineCalYear}-${p2(routineCalMonth+1)}-${p2(d)}`;
+    const isToday = ds === today;
+    const isSel = ds === routineSelectedDate;
+    const anyDone = DB.routines.some(r => (r.completedDates||[]).includes(ds));
+    html += `<div onclick="selectRoutineCalDate('${ds}')" style="padding:3px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;
+        background:${isSel?'var(--accent)':isToday?'var(--accent-light)':'transparent'};
+        color:${isSel?'white':isToday?'var(--accent)':'var(--text-dark)'};
+        font-weight:${isSel||isToday?700:400}">${d}</div>
+      <div style="width:4px;height:4px;border-radius:50%;background:${anyDone?(isSel?'white':'var(--accent)'):'transparent'}"></div>
+    </div>`;
+  }
+  document.getElementById('routineCalGrid').innerHTML = html;
+}
+
+function selectRoutineCalDate(ds) {
+  routineSelectedDate = ds;
+  closeModal('m-routine-cal');
+  renderRoutine();
+}
+
+function delMeal(id) {
+  DB.meals = DB.meals.filter(m => m.id !== id);
+  saveDB(); renderDiet(); updateHeader();
+}
+
+// ══════════════════════════════════════════
+// DIARY
+// ══════════════════════════════════════════
+const VLOGS_BG = [
+  'linear-gradient(135deg,#a8edea,#fed6e3)',
+  'linear-gradient(135deg,#ffecd2,#fcb69f)',
+  'linear-gradient(135deg,#a1c4fd,#c2e9fb)',
+  'linear-gradient(135deg,#d4fc79,#96e6a1)',
+  'linear-gradient(135deg,#f6d365,#fda085)',
+  'linear-gradient(135deg,#89f7fe,#66a6ff)',
+  'linear-gradient(135deg,#fddb92,#d1fdff)',
+];
+
+let diarySelectedDate = todayStr();
+
+function renderDiaryDateScroll() {
+  const dowMap = ['S','M','T','W','T','F','S'];
+  const todayDate = new Date();
+  const todayDs = todayStr();
+  let html = '';
+  for (let i = -13; i <= 13; i++) {
+    const d = new Date(todayDate); d.setDate(todayDate.getDate() + i);
+    const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+    const isSel = ds === diarySelectedDate;
+    const isToday = ds === todayDs;
+    html += `<div class="date-cell ${isSel?'today-sel':''}" onclick="selectDiaryScrollDate('${ds}')" style="${isToday&&!isSel?'border:2px solid var(--accent)':''}">
+      <div class="dc-dow">${dowMap[d.getDay()]}</div>
+      <div class="dc-num">${d.getDate()}</div>
+    </div>`;
+  }
+  const el = document.getElementById('diaryDateScroll');
+  if (!el) return;
+  el.innerHTML = html;
+  setTimeout(() => {
+    const selCell = el.querySelector('.today-sel');
+    if (selCell) {
+      el.scrollLeft = selCell.offsetLeft - el.clientWidth / 2 + selCell.offsetWidth / 2;
+    } else {
+      const allCells = el.querySelectorAll('.date-cell');
+      const todayCell = allCells[13];
+      if (todayCell) el.scrollLeft = todayCell.offsetLeft - el.clientWidth / 2 + todayCell.offsetWidth / 2;
+    }
+  }, 50);
+}
+
+function selectDiaryScrollDate(ds) {
+  diarySelectedDate = ds;
+  renderDiary();
+}
+
+function getTodayDiary() {
+  const key = diarySelectedDate;
+  if (!DB.diary[key]) DB.diary[key] = { ootd:null, cam:null, finances:[], tp:null, fw:'', vlogs:[] };
+  return DB.diary[key];
+}
+
+function renderDiary() {
+  renderDiaryDateScroll();
+  const d = getTodayDiary();
+
+  // apple — music embed with timeout fallback
+  const appleLink = d.apple && d.apple.link;
+  const appleBodyEl = document.getElementById('appleBody');
+  if (appleLink) {
+    const embedUrl = getMusicEmbedUrl(appleLink);
+    if (embedUrl) {
+      const pid = 'aph_' + Date.now();
+      const fid = 'afr_' + Date.now();
+      appleBodyEl.innerHTML =
+        `<div style="position:relative;border-radius:12px;overflow:hidden;background:var(--chip)">
+           <div id="${pid}" style="height:52px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-light)">🎵 loading player...</div>
+           <iframe id="${fid}"
+             allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
+             frameborder="0" height="175"
+             style="width:100%;display:none;border-radius:12px"
+             src="${embedUrl}">
+           </iframe>
+           <button onclick="deleteAppleLink()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.35);border:none;border-radius:50%;width:22px;height:22px;color:white;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+         </div>`;
+      const ph = document.getElementById(pid);
+      const fr = document.getElementById(fid);
+      let loaded = false;
+      fr.addEventListener('load', () => {
+        loaded = true;
+        if (ph) ph.style.display = 'none';
+        fr.style.display = 'block';
+      });
+      // if still loading after 4s, fall back to link card
+      setTimeout(() => {
+        if (!loaded) renderAppleLinkCard(appleBodyEl, appleLink);
+      }, 4000);
+    } else {
+      renderAppleLinkCard(appleBodyEl, appleLink);
+    }
+  } else {
+    appleBodyEl.innerHTML = '';
+  }
+
+  // money — all English
+  const fins = d.finances || [];
+  if (fins.length) {
+    const income  = fins.filter(f=>f.isIncome).reduce((s,f)=>s+f.amt,0);
+    const expense = fins.filter(f=>!f.isIncome).reduce((s,f)=>s+f.amt,0);
+    const finItemHtml = (f, sign) => `
+      <div class="fin-item-row" onclick="openFinEditModal('${f.id}')" style="cursor:pointer">
+        <div class="fin-item-lbl">${f.desc}</div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <div class="fin-item-amt">${sign}${f.amt.toLocaleString()}</div>
+          <button onclick="event.stopPropagation();delFin('${f.id}')" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:15px;padding:0 2px;line-height:1">×</button>
+        </div>
+      </div>`;
+    document.getElementById('finBody').innerHTML = `
+      <div class="fin-row"><div class="fin-lbl">total expense</div><div class="fin-amt">-${expense.toLocaleString()}</div></div>
+      ${fins.filter(f=>!f.isIncome).map(f=>finItemHtml(f,'-')).join('')}
+      <div class="fin-row" style="margin-top:8px"><div class="fin-lbl">total income</div><div class="fin-amt">+${income.toLocaleString()}</div></div>
+      ${fins.filter(f=>f.isIncome).map(f=>finItemHtml(f,'+')).join('')}
+    `;
+  } else {
+    document.getElementById('finBody').innerHTML = '';
+  }
+
+  // Today's most — joyful / hard / grateful with dividers
+  if (d.tp) {
+    const div = `<div style="height:1px;background:var(--divider);margin:10px 0"></div>`;
+    const row = (label, val) => val
+      ? `<div style="font-size:13px;color:var(--text-dark);line-height:1.6"><span style="color:var(--text-mid)">${label}: </span>${val}</div>`
+      : '';
+    const parts = [row('joyful', d.tp.joy), row('hard', d.tp.hard), row('grateful', d.tp.gratitude)].filter(Boolean);
+    document.getElementById('tpBody').innerHTML =
+      `<div onclick="openTpModal()" style="cursor:pointer">` + parts.join(div) + `</div>`;
+  } else {
+    document.getElementById('tpBody').innerHTML = '';
+  }
+
+  // arnuioe — plain text only
+  if (d.fw) {
+    document.getElementById('fwBody').innerHTML =
+      `<div onclick="openFwModal()" style="cursor:pointer;font-size:14px;color:var(--text-dark);line-height:1.8;white-space:pre-wrap">${d.fw}</div>`;
+  } else {
+    document.getElementById('fwBody').innerHTML = '';
+  }
+
+  // OOTD — photo with delete button
+  if (d.ootd && d.ootd.photo) {
+    document.getElementById('ootdBody').innerHTML =
+      `<div style="position:relative">
+         <img src="${d.ootd.photo}" style="width:100%;border-radius:10px;display:block;cursor:pointer" onclick="openOotdModal()">
+         <button onclick="deleteOotdPhoto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.45);border:none;border-radius:50%;width:22px;height:22px;color:white;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+       </div>`;
+  } else {
+    document.getElementById('ootdBody').innerHTML = '';
+  }
+
+  // archive — photo board grid with delete buttons
+  const arc = d.archive || {};
+  if (arc.files && arc.files.length) {
+    document.getElementById('archiveBody').innerHTML =
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">` +
+      arc.files.map((f, i) =>
+        f.type && f.type.startsWith('image/')
+          ? `<div style="position:relative;border-radius:10px;overflow:hidden">
+               <img src="${f.data}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">
+               <button onclick="deleteArchiveFile(${i})" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.45);border:none;border-radius:50%;width:22px;height:22px;color:white;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+             </div>`
+          : `<div style="position:relative;padding:12px;background:var(--chip);border-radius:10px;font-size:12px;color:var(--text-mid)">
+               📎 ${f.name}
+               <button onclick="deleteArchiveFile(${i})" style="position:absolute;top:4px;right:6px;background:none;border:none;color:var(--text-light);cursor:pointer;font-size:16px;line-height:1">×</button>
+             </div>`
+      ).join('') +
+      `</div>`;
+  } else {
+    document.getElementById('archiveBody').innerHTML = '';
+  }
+}
+
+// Diary modals
+let finType = 'exp';
+let ootdPhotoData = null;
+let archiveFilesData = [];
+
+function openDiaryPicker() { openModal('m-diary-pick'); }
+
+// apple
+function openAppleModal() {
+  const d = getTodayDiary();
+  sv('appleLink', d.apple ? d.apple.link : '');
+  openModal('m-apple');
+}
+function saveApple() {
+  getTodayDiary().apple = { link: v('appleLink') };
+  saveDB(); closeModal('m-apple'); renderDiary();
+}
+function deleteAppleLink() {
+  getTodayDiary().apple = null;
+  saveDB(); renderDiary();
+}
+
+function renderAppleLinkCard(container, link) {
+  const isSpotify = link.includes('spotify.com');
+  const bg = isSpotify ? 'linear-gradient(135deg,#1DB954,#158a3e)' : 'linear-gradient(135deg,#fc3c44,#c0143c)';
+  const label = isSpotify ? 'SPOTIFY' : 'APPLE MUSIC';
+  const shortTitle = link.replace(/^https?:\/\/(music\.apple\.com|open\.spotify\.com)\/\w+\//, '')
+    .replace(/\?.*/, '').split('/').filter(Boolean).join(' · ').slice(0, 60);
+  container.innerHTML =
+    `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${bg};border-radius:12px;cursor:pointer;position:relative" onclick="window.open('${link}','_blank')">
+      <div style="font-size:24px;flex-shrink:0">${isSpotify ? '🎧' : '🎵'}</div>
+      <div style="flex:1;overflow:hidden">
+        <div style="font-size:10px;color:rgba(255,255,255,0.75);font-weight:700;letter-spacing:.5px;margin-bottom:2px">${label}</div>
+        <div style="font-size:13px;color:white;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${shortTitle || link}</div>
+      </div>
+      <button onclick="event.stopPropagation();deleteAppleLink()" style="flex-shrink:0;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:24px;height:24px;color:white;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+    </div>`;
+}
+
+function getMusicEmbedUrl(url) {
+  if (!url) return null;
+  try {
+    const trimmed = url.trim();
+    // Apple Music: https://music.apple.com/... → https://embed.music.apple.com/...
+    if (trimmed.includes('music.apple.com')) {
+      const embedBase = trimmed.replace(/^https?:\/\/music\.apple\.com/, 'https://embed.music.apple.com');
+      return embedBase;
+    }
+    // Spotify: https://open.spotify.com/track/... → https://open.spotify.com/embed/track/...
+    if (trimmed.includes('open.spotify.com') && !trimmed.includes('/embed/')) {
+      return trimmed.replace('open.spotify.com/', 'open.spotify.com/embed/');
+    }
+  } catch(e) {}
+  return null;
+}
+
+function openOotdModal() {
+  ootdPhotoData = null;
+  document.getElementById('ootdPhotoPreview').innerHTML = '';
+  document.getElementById('ootdPhotoInput').value = '';
+  const d = getTodayDiary();
+  if (d.ootd && d.ootd.photo) {
+    ootdPhotoData = d.ootd.photo;
+    document.getElementById('ootdPhotoPreview').innerHTML =
+      `<img src="${d.ootd.photo}" style="width:100%;border-radius:10px;display:block">`;
+  }
+  openModal('m-ootd');
+}
+function handleOotdPhoto(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    ootdPhotoData = e.target.result;
+    document.getElementById('ootdPhotoPreview').innerHTML =
+      `<img src="${ootdPhotoData}" style="width:100%;border-radius:10px;display:block">`;
+  };
+  reader.readAsDataURL(file);
+}
+function saveOotd() {
+  const d = getTodayDiary();
+  d.ootd = { photo: ootdPhotoData };
+  saveDB(); closeModal('m-ootd'); renderDiary();
+}
+function deleteOotdPhoto() {
+  getTodayDiary().ootd = null;
+  saveDB(); renderDiary();
+}
+
+function openCamModal() {
+  selectedCamModels = [];
+  camStarVal = 4;
+  const d = getTodayDiary();
+  if (d.cam) { selectedCamModels = [...(d.cam.models||[])]; camStarVal = d.cam.stars||4; sv('camMemo', d.cam.memo||''); sv('camCustom',''); }
+  const chips = DB.camModels.map(m => `
+    <button class="camera-chip ${selectedCamModels.includes(m)?'sel':''}" onclick="toggleCamModel('${m}',this)">${m}</button>
+  `).join('');
+  document.getElementById('camChipsModal').innerHTML = chips;
+  updateCamStars();
+  openModal('m-cam');
+}
+function toggleCamModel(m, el) {
+  if (selectedCamModels.includes(m)) { selectedCamModels = selectedCamModels.filter(x=>x!==m); el.classList.remove('sel'); }
+  else { selectedCamModels.push(m); el.classList.add('sel'); }
+}
+function setCamStar(n) { camStarVal = n; updateCamStars(); }
+function updateCamStars() {
+  document.querySelectorAll('#camStarsModal .star').forEach((s,i) => s.classList.toggle('on', i < camStarVal));
+}
+function saveCam() {
+  const d = getTodayDiary();
+  const custom = v('camCustom');
+  const models = [...selectedCamModels];
+  if (custom && !models.includes(custom)) { models.push(custom); if (!DB.camModels.includes(custom)) DB.camModels.push(custom); }
+  d.cam = { models, stars: camStarVal, memo: v('camMemo') };
+  saveDB(); closeModal('m-cam'); renderDiary();
+}
+
+let editFinId = null;
+function openFinModal() {
+  editFinId = null;
+  finType = 'exp'; updateFinTypeUI();
+  ['finDesc','finAmt'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('finModalTitle').textContent = 'money';
+  openModal('m-fin');
+}
+function openFinEditModal(id) {
+  const d = getTodayDiary();
+  const f = (d.finances || []).find(x => x.id === id);
+  if (!f) return;
+  editFinId = id;
+  finType = f.isIncome ? 'inc' : 'exp';
+  updateFinTypeUI();
+  document.getElementById('finDesc').value = f.desc;
+  document.getElementById('finAmt').value = f.amt;
+  document.getElementById('finModalTitle').textContent = 'edit money';
+  openModal('m-fin');
+}
+function delFin(id) {
+  const d = getTodayDiary();
+  if (!d.finances) return;
+  d.finances = d.finances.filter(f => f.id !== id);
+  saveDB(); renderDiary();
+}
+function setFinType(t) { finType = t; updateFinTypeUI(); }
+function updateFinTypeUI() {
+  const inc = document.getElementById('finTypeInc');
+  const exp = document.getElementById('finTypeExp');
+  inc.classList.toggle('sel', finType === 'inc');
+  exp.classList.toggle('sel', finType === 'exp');
+}
+function saveFin() {
+  const desc = v('finDesc'); const amt = parseInt(v('finAmt')) || 0;
+  if (!desc || !amt) return alert('내용과 금액을 입력해줘!');
+  const d = getTodayDiary();
+  if (!d.finances) d.finances = [];
+  if (editFinId) {
+    const f = d.finances.find(x => x.id === editFinId);
+    if (f) { f.desc = desc; f.amt = amt; f.isIncome = finType === 'inc'; }
+    editFinId = null;
+  } else {
+    d.finances.push({ id: uid(), desc, amt, isIncome: finType === 'inc' });
+  }
+  saveDB(); closeModal('m-fin'); renderDiary();
+}
+
+function openTpModal() {
+  const d = getTodayDiary();
+  sv('tpJoy', d.tp ? d.tp.joy : '');
+  sv('tpHard', d.tp ? d.tp.hard : '');
+  sv('tpGratitude', d.tp ? d.tp.gratitude : '');
+  openModal('m-tp');
+}
+function saveTp() {
+  const joy = v('tpJoy'); const hard = v('tpHard'); const grat = v('tpGratitude');
+  const d = getTodayDiary();
+  d.tp = (joy || hard || grat) ? { joy, hard, gratitude: grat } : null;
+  saveDB(); closeModal('m-tp'); renderDiary();
+}
+
+function openFwModal() {
+  const d = getTodayDiary();
+  sv('fwText', d.fw || '');
+  openModal('m-fw');
+}
+function saveFw() {
+  getTodayDiary().fw = v('fwText');
+  saveDB(); closeModal('m-fw'); renderDiary();
+}
+function deleteTp() {
+  const d = getTodayDiary(); d.tp = null;
+  saveDB(); renderDiary();
+}
+function deleteFw() {
+  const d = getTodayDiary(); d.fw = null;
+  saveDB(); renderDiary();
+}
+
+function openArchiveModal() {
+  archiveFilesData = [];
+  document.getElementById('archiveFileInput').value = '';
+  document.getElementById('archiveFilePreview').innerHTML = '';
+  openModal('m-archive');
+}
+function handleArchiveFiles(input) {
+  const files = Array.from(input.files); if (!files.length) return;
+  archiveFilesData = [];
+  const prev = document.getElementById('archiveFilePreview');
+  prev.innerHTML = '';
+  let loaded = 0;
+  files.forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      archiveFilesData[i] = { name: file.name, type: file.type, data: e.target.result };
+      if (file.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.cssText = 'width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;display:block';
+        prev.appendChild(img);
+      }
+      loaded++;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function saveArchive() {
+  const d = getTodayDiary();
+  if (!d.archive) d.archive = { files: [] };
+  const newFiles = archiveFilesData.filter(Boolean);
+  d.archive.files = (d.archive.files || []).concat(newFiles);
+  saveDB(); closeModal('m-archive'); renderDiary();
+}
+function deleteArchiveFile(idx) {
+  const d = getTodayDiary();
+  if (d.archive && d.archive.files) {
+    d.archive.files.splice(idx, 1);
+    saveDB(); renderDiary();
+  }
+}
+
+// ══════════════════════════════════════════
+// SCHEDULE
+// ══════════════════════════════════════════
+let schSelectedDate = todayStr();
+
+function renderSchedule() {
+  const baseDate = new Date(schSelectedDate + 'T00:00:00');
+  const days = ['S','M','T','W','T','F','S'];
+  const today = todayStr();
+
+  // 날짜 스크롤 — 선택된 날짜 기준 ±4일
+  let dateHtml = '';
+  for (let i = -4; i <= 4; i++) {
+    const d = new Date(baseDate); d.setDate(baseDate.getDate() + i);
+    const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+    const isSel = ds === schSelectedDate;
+    const isToday = ds === today;
+    dateHtml += `<div class="date-cell ${isSel?'today-sel':''}" onclick="selectSchDate('${ds}')" style="cursor:pointer">
+      <div class="dc-dow" style="${isToday&&!isSel?'color:var(--primary)':''}">${days[d.getDay()]}</div>
+      <div class="dc-num" style="${isToday&&!isSel?'color:var(--primary)':''}">${d.getDate()}</div>
+    </div>`;
+  }
+  document.getElementById('dateScroll').innerHTML = dateHtml;
+  // 선택된 셀 가운데로
+  setTimeout(() => {
+    const dc = document.getElementById('dateScroll');
+    const sel = dc.querySelector('.today-sel');
+    if (sel) dc.scrollLeft = sel.offsetLeft - dc.clientWidth / 2 + sel.offsetWidth / 2;
+  }, 50);
+
+  renderSchTimeline();
+}
+
+function selectSchDate(ds) {
+  schSelectedDate = ds;
+  renderSchedule();
+}
+
+function renderSchTimeline() {
+  // calendar events (editable here too)
+  const calEvents = getEventsForDate(schSelectedDate).map(e => {
+    const cat = DB.categories.find(c => c.id === e.catId);
+    return { title: e.title, time: e.time || '', endTime: e.endTime || '', color: cat ? cat.color : 'var(--primary)', evId: e.id };
+  });
+  // schedule-only events (not shown on calendar)
+  const schEvents = (DB.schedule || []).filter(e => e.date === schSelectedDate).map(e => ({
+    title: e.title, time: e.time || '', endTime: e.endTime || '', color: e.color || 'var(--primary)', schId: e.id
+  }));
+  const allEvents = [...calEvents, ...schEvents];
+
+  const now = new Date();
+  const nowH = now.getHours();
+  const isToday = schSelectedDate === todayStr();
+
+  let schHtml = '';
+  for (let h = 0; h <= 23; h++) {
+    const label = h === 0 ? '12am' : h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h-12}pm`;
+    const hEvents = allEvents.filter(e => {
+      const hr = e.time ? parseInt(e.time.split(':')[0]) : -1;
+      return hr === h;
+    });
+    const evHtml = hEvents.map(e => {
+      const delBtn = e.schId
+        ? `<button onclick="event.stopPropagation();deleteSchEvent('${e.schId}')" style="position:absolute;top:4px;right:6px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:16px;line-height:1">×</button>`
+        : `<button onclick="event.stopPropagation();deleteEventOccurrence('${e.evId}','${schSelectedDate}')" style="position:absolute;top:4px;right:6px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:16px;line-height:1">×</button>`;
+      const editFn = e.schId ? `openSchEditModal('${e.schId}')` : `editEventOccurrence('${e.evId}','${schSelectedDate}')`;
+      return `<div class="tl-block" style="background:${e.color};color:white;border-radius:10px;padding:8px 10px;position:relative;cursor:pointer" onclick="${editFn}">
+        ${delBtn}
+        <div class="tl-block-title" style="color:white">${e.title}</div>
+        <div class="tl-block-time" style="color:rgba(255,255,255,.75)">${e.time}${e.endTime?' – '+e.endTime:''}</div>
+      </div>`;
+    }).join('');
+    const isNow = isToday && h === nowH;
+    schHtml += `
+      ${isNow ? `<div class="tl-now-line"><div class="tl-now-dot"></div><div class="tl-now-hr"></div></div>` : ''}
+      <div class="tl-row">
+        <div class="tl-time">${label}</div>
+        <div class="tl-line-wrap"><div class="tl-line"></div></div>
+        <div class="tl-events">${evHtml}</div>
+      </div>`;
+  }
+  document.getElementById('timeline').innerHTML = schHtml;
+}
+
+// ══════════════════════════════════════════
+// ROUTINE
+// ══════════════════════════════════════════
+let routineSelectedDate = todayStr();
+
+function isRoutineDone(r, ds) {
+  return (r.completedDates || []).includes(ds || routineSelectedDate);
+}
+function isRoutineDoneToday(r) { return isRoutineDone(r, routineSelectedDate); }
+
+function renderRoutine() {
+  const done = DB.routines.filter(r => isRoutineDoneToday(r)).length;
+  const total = DB.routines.length;
+  const rate = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('routineRate').textContent = rate + '%';
+
+  document.getElementById('routineList').innerHTML = DB.routines.map(r => {
+    const isDone = isRoutineDoneToday(r);
+    const streak = calcRoutineStreak(r);
+    const weekDots = getLast7(r);
+    return `<div class="routine-item" onclick="openRoutineEditModal('${r.id}')">
+      <div class="routine-check ${isDone?'done':''}" onclick="event.stopPropagation();toggleRoutine('${r.id}')">${isDone?'✓':''}</div>
+      <div style="flex:1">
+        <div class="routine-name">${r.name}</div>
+        <div class="routine-time">${r.time || 'anytime'} · ${repeatLabel(r.repeat)}</div>
+      </div>
+      <div class="routine-right">
+        <div class="streak-badge">+${streak}</div>
+        <div class="week-dots">${weekDots.map(s=>`<div class="wd ${s}"></div>`).join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function repeatLabel(r) {
+  return { daily:'daily', weekday:'weekday', weekend:'weekend', weekly:'weekly', anytime:'anytime' }[r] || r;
+}
+
+function getLast7(r) {
+  const result = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+    const isToday = i === 0;
+    const done = (r.completedDates||[]).includes(ds);
+    result.push(isToday ? (done ? 'done today' : 'today') : (done ? 'done' : ''));
+  }
+  return result;
+}
+
+function toggleRoutine(id) {
+  const r = DB.routines.find(x => x.id === id);
+  if (!r) return;
+  if (!r.completedDates) r.completedDates = [];
+  const ds = routineSelectedDate;
+  if (r.completedDates.includes(ds)) {
+    r.completedDates = r.completedDates.filter(d => d !== ds);
+  } else {
+    r.completedDates.push(ds);
+  }
+  saveDB(); renderRoutine(); updateHeader();
+}
+
+function calcStreak() {
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+    const anyDone = DB.routines.some(r => (r.completedDates||[]).includes(ds));
+    if (anyDone) streak++;
+    else if (i > 0) break;
+  }
+  return streak;
+}
+
+function calcBestStreak() {
+  const allDates = new Set();
+  DB.routines.forEach(r => (r.completedDates||[]).forEach(d => allDates.add(d)));
+  const sorted = [...allDates].sort();
+  let best = 0, cur = 0;
+  for (let i = 0; i < sorted.length; i++) {
+    if (i === 0) { cur = 1; }
+    else {
+      const prev = new Date(sorted[i-1]+'T00:00:00');
+      const curr = new Date(sorted[i]+'T00:00:00');
+      const diff = (curr - prev) / 86400000;
+      cur = diff === 1 ? cur + 1 : 1;
+    }
+    best = Math.max(best, cur);
+  }
+  return best;
+}
+
+function calcMonthRate() {
+  const now = new Date();
+  const daysInMonth = now.getDate();
+  let done = 0, total = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(d)}`;
+    DB.routines.forEach(r => {
+      total++;
+      if ((r.completedDates||[]).includes(ds)) done++;
+    });
+  }
+  return total ? Math.round(done / total * 100) : 0;
+}
+
+function calcRoutineStreak(r) {
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+    if ((r.completedDates||[]).includes(ds)) streak++;
+    else if (i > 0) break;
+  }
+  return streak;
+}
+
+let editRoutineId = null;
+
+function openRoutineEditModal(id) {
+  editRoutineId = id;
+  const r = DB.routines.find(x => x.id === id);
+  if (!r) return;
+  sv('routineName', r.name);
+  sv('routineTime', r.time || '');
+  document.getElementById('routineRepeat').value = r.repeat || 'daily';
+  openModal('m-routine');
+}
+
+function saveRoutine() {
+  const name = v('routineName').trim();
+  const time = v('routineTime');
+  const repeat = document.getElementById('routineRepeat').value;
+  if (!name) return;
+  if (editRoutineId) {
+    const r = DB.routines.find(x => x.id === editRoutineId);
+    if (r) { r.name = name; r.time = time; r.repeat = repeat; }
+    editRoutineId = null;
+  } else {
+    DB.routines.push({ id: uid(), name, time, repeat, completedDates: [] });
+  }
+  saveDB(); closeModal('m-routine'); renderRoutine(); updateHeader();
+}
+
+// ══════════════════════════════════════════
+// TODO
+// ══════════════════════════════════════════
+let todoFilter = 'all';
+let todoViewMode = 'urgency'; // 'urgency' | 'date'
+
+function renderTodo() {
+  const filterEl = document.getElementById('todoFilter');
+  filterEl.innerHTML = `
+    <button class="fchip ${todoFilter==='all'?'active':''}" onclick="setTodoFilter('all')"
+      style="${todoFilter==='all'?'background:var(--primary-light);color:var(--primary);border:1.5px solid var(--primary);font-weight:700':'background:white;color:var(--text-mid);border:1.5px solid transparent'}"
+    >all</button>
+    ${DB.todoCats.map(c => `
+      <button class="fchip ${todoFilter===c.id?'active':''}" onclick="setTodoFilter('${c.id}')"
+        style="${todoFilter===c.id
+          ? `background:${hexAlpha(c.color,0.13)};color:${c.color};border:1.5px solid ${c.color};font-weight:700`
+          : 'background:white;color:var(--text-mid);border:1.5px solid transparent'}"
+      >${c.name}</button>
+    `).join('')}
+    <button class="fchip" onclick="openTodoCatMgmt()" style="color:var(--text-mid)">⚙</button>
+  `;
+
+  const filtered = todoFilter === 'all'
+    ? DB.todos
+    : DB.todos.filter(t => t.catId === todoFilter);
+
+  const today = todayStr();
+
+  // view mode toggle
+  const viewToggle = `<div style="display:flex;gap:8px;padding:0 16px 12px">
+    <button onclick="setTodoView('urgency')" style="font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;background:${todoViewMode==='urgency'?'var(--primary)':'var(--chip)'};color:${todoViewMode==='urgency'?'white':'var(--text-mid)'}">by status</button>
+    <button onclick="setTodoView('date')" style="font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;background:${todoViewMode==='date'?'var(--primary)':'var(--chip)'};color:${todoViewMode==='date'?'white':'var(--text-mid)'}">by date</button>
+  </div>`;
+
+  function todoItemHtml(t) {
+    const overdue = !t.done && t.dueDate && t.dueDate < today;
+    const tcat = DB.todoCats.find(c => c.id === t.catId);
+    const catColor = tcat ? tcat.color : '#D9D9D9';
+    return `<div class="todo-item" onclick="openTodoEditModal('${t.id}')">
+      <div class="todo-cb ${t.done?'done':''}" onclick="event.stopPropagation();toggleTodo('${t.id}')">${t.done?'✓':''}</div>
+      <div class="todo-text ${t.done?'done':''}">${t.title}</div>
+      <div class="todo-due ${overdue?'overdue':''}">${t.done?'done':t.dueDate?fmtDate(t.dueDate):''}</div>
+      <button class="todo-del" onclick="event.stopPropagation();delTodo('${t.id}')">×</button>
+    </div>`;
+  }
+
+  let groupsHtml = '';
+  if (todoViewMode === 'urgency') {
+    const groups = [
+      { label: 'due today', items: filtered.filter(t => !t.done && t.dueDate && t.dueDate <= today) },
+      { label: 'this week', items: filtered.filter(t => !t.done && t.dueDate && t.dueDate > today && t.dueDate <= offsetDate(7)) },
+      { label: 'later',     items: filtered.filter(t => !t.done && (!t.dueDate || t.dueDate > offsetDate(7))) },
+      { label: 'done',      items: filtered.filter(t => t.done) },
+    ].filter(g => g.items.length > 0);
+    groupsHtml = groups.map(g => `
+      <div class="todo-group">
+        <div class="todo-group-hdr">
+          <div class="todo-group-name">${g.label}</div>
+          <div class="todo-group-cnt">${g.items.length}</div>
+        </div>
+        ${g.items.map(t => todoItemHtml(t)).join('')}
+      </div>
+    `).join('');
+  } else {
+    // by date view
+    const dateMap = {};
+    filtered.forEach(t => {
+      const key = t.dueDate || 'no date';
+      if (!dateMap[key]) dateMap[key] = [];
+      dateMap[key].push(t);
+    });
+    const sortedKeys = Object.keys(dateMap).sort((a, b) => {
+      if (a === 'no date') return 1;
+      if (b === 'no date') return -1;
+      return a.localeCompare(b);
+    });
+    groupsHtml = sortedKeys.length ? sortedKeys.map(k => `
+      <div class="todo-group">
+        <div class="todo-group-hdr">
+          <div class="todo-group-name">${k === 'no date' ? 'no date' : fmtDate(k)}</div>
+          <div class="todo-group-cnt">${dateMap[k].length}</div>
+        </div>
+        ${dateMap[k].map(t => todoItemHtml(t)).join('')}
+      </div>
+    `).join('') : '';
+  }
+
+  document.getElementById('todoGroups').innerHTML = viewToggle + groupsHtml;
+}
+
+function setTodoFilter(id) {
+  todoFilter = id;
+  renderTodo();
+}
+
+function setTodoView(mode) {
+  todoViewMode = mode;
+  renderTodo();
+}
+
+function toggleTodo(id) {
+  const t = DB.todos.find(x => x.id === id);
+  if (t) { t.done = !t.done; saveDB(); renderTodo(); updateHeader(); }
+}
+function delTodo(id) {
+  DB.todos = DB.todos.filter(t => t.id !== id);
+  saveDB(); renderTodo(); updateHeader();
+}
+
+let editTodoId = null;
+
+function openTodoEditModal(id) {
+  editTodoId = id;
+  const t = DB.todos.find(x => x.id === id);
+  if (!t) return;
+  sv('todoTitle', t.title);
+  sv('todoDue', t.dueDate || '');
+  document.getElementById('todoCatChips').innerHTML = DB.todoCats.map(c => {
+    const isSel = c.id === t.catId;
+    return `<button class="chip ${isSel?'sel':''}" style="color:${c.color};background:${isSel?hexAlpha(c.color,0.15):'var(--chip)'}" data-cat-id="${c.id}" onclick="selectChip(this,'todoCatChips')">${c.name}</button>`;
+  }).join('');
+  openModal('m-todo');
+}
+
+function saveTodo() {
+  const title = v('todoTitle').trim();
+  const catId = document.querySelector('#todoCatChips .chip.sel')?.dataset.catId;
+  const dueDate = v('todoDue') || null;
+  if (!title) return alert('please enter a task!');
+  if (editTodoId) {
+    const t = DB.todos.find(x => x.id === editTodoId);
+    if (t) { t.title = title; t.catId = catId || t.catId; t.dueDate = dueDate; }
+    editTodoId = null;
+  } else {
+    DB.todos.push({ id: uid(), title, catId: catId || DB.todoCats[0]?.id, dueDate, done: false });
+  }
+  saveDB(); closeModal('m-todo'); renderTodo(); updateHeader();
+}
+
+// ══════════════════════════════════════════
+// FAB & 모달
+// ══════════════════════════════════════════
+function fabAction() {
+  if (curTab === 'calendar') { openAddEventModal(); }
+  else if (curTab === 'diet') { openMealModal('lunch','☀️ 식단'); }
+  else if (curTab === 'diary') { openDiaryPicker(); }
+  else if (curTab === 'schedule') { openSchModal(); }
+  else if (curTab === 'routine') { openRoutineModal(); }
+  else if (curTab === 'todo') { openTodoModal(); }
+}
+
+function openAddEventModal() {
+  editEventId = null;
+  sv('evTitle', '');
+  evPickerYear = new Date().getFullYear();
+  evPickerMonth = new Date().getMonth();
+  evPickerDates = new Set([todayStr()]);
+  evRepeatDays = new Set();
+  renderEvPicker();
+  document.getElementById('evCatChips').innerHTML = DB.categories.map((c,i) =>
+    `<button class="chip ${i===0?'sel':''}" style="color:${c.color};background:${i===0?hexAlpha(c.color,0.15):'var(--chip)'}" data-cat-id="${c.id}" onclick="selectChip(this,'evCatChips')">${c.name}</button>`
+  ).join('');
+  ['evPeriodToggle','evRepeatToggle'].forEach(id => document.getElementById(id).classList.remove('on'));
+  document.getElementById('evEndDateWrap').style.display = 'none';
+  document.getElementById('evRepeatWrap').style.display = 'none';
+  sv('evTime', '');
+  sv('evEndDate', '');
+  sv('evEndTime', '');
+  document.getElementById('evModalTitle').textContent = 'NEW !';
+  openModal('m-event');
+}
+
+function openRoutineModal() {
+  editRoutineId = null;
+  ['routineName','routineTime'].forEach(id => sv(id,''));
+  document.getElementById('routineRepeat').value = 'daily';
+  openModal('m-routine');
+}
+
+function openTodoModal() {
+  editTodoId = null;
+  sv('todoTitle',''); sv('todoDue','');
+  document.getElementById('todoCatChips').innerHTML = DB.todoCats.map((c,i) =>
+    `<button class="chip ${i===0?'sel':''}" style="color:${c.color};background:${i===0?hexAlpha(c.color,0.15):'var(--chip)'}" data-cat-id="${c.id}" onclick="selectChip(this,'todoCatChips')">${c.name}</button>`
+  ).join('');
+  openModal('m-todo');
+}
+
+function openTodoCatMgmt() {
+  renderTodoCatList();
+  sv('newTodoCatName', '');
+  openModal('m-todo-cat');
+}
+
+function renderTodoCatList() {
+  document.getElementById('todoCatList').innerHTML = DB.todoCats.map((c) => `
+    <div style="display:flex;flex-direction:column;gap:8px;background:var(--chip);border-radius:var(--radius);padding:12px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:14px;height:14px;border-radius:50%;background:${c.color};flex-shrink:0;border:2px solid rgba(0,0,0,.1)"></div>
+        <input value="${c.name}" id="tcname_${c.id}" style="flex:1;border:none;background:transparent;font-size:14px;color:var(--text-dark);outline:none;font-weight:600" onchange="updateTodoCatName('${c.id}', this.value)">
+        ${DB.todoCats.length > 1 ? `<button onclick="deleteTodoCat('${c.id}')" style="background:none;border:none;color:var(--text-light);cursor:pointer;font-size:18px;line-height:1;flex-shrink:0">×</button>` : ''}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${COLORS.map(col => `<div onclick="updateTodoCatColor('${c.id}','${col}')" style="width:22px;height:22px;border-radius:50%;background:${col};cursor:pointer;border:${col===c.color?'2.5px solid var(--text-dark)':'2.5px solid transparent'};flex-shrink:0"></div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateTodoCatColor(id, color) {
+  const c = DB.todoCats.find(x => x.id === id);
+  if (c) { c.color = color; saveDB(); renderTodoCatList(); renderTodo(); }
+}
+
+function updateTodoCatName(id, name) {
+  const c = DB.todoCats.find(x => x.id === id);
+  if (c && name.trim()) { c.name = name.trim(); saveDB(); renderTodo(); }
+}
+
+function deleteTodoCat(id) {
+  DB.todoCats = DB.todoCats.filter(c => c.id !== id);
+  DB.todos.forEach(t => { if (t.catId === id) t.catId = null; });
+  saveDB(); renderTodoCatList(); renderTodo();
+}
+
+function addTodoCat() {
+  const name = v('newTodoCatName').trim();
+  if (!name) return;
+  const color = COLORS[DB.todoCats.length % COLORS.length];
+  DB.todoCats.push({ id: uid(), name, color });
+  saveDB(); sv('newTodoCatName',''); renderTodoCatList(); renderTodo();
+}
+
+let schEvColor = '#A65D7F';
+
+let editSchId = null;
+
+function openSchEditModal(id) {
+  const e = (DB.schedule || []).find(x => x.id === id);
+  if (!e) return;
+  editSchId = id;
+  sv('schEvTitle', e.title);
+  sv('schEvTime', e.time || '');
+  sv('schEvEndTime', e.endTime || '');
+  schEvColor = e.color || COLORS[0];
+  const d = new Date((e.date || schSelectedDate) + 'T00:00:00');
+  const dowNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  document.getElementById('schEvDateLabel').textContent =
+    `${d.getFullYear()}.${p2(d.getMonth()+1)}.${p2(d.getDate())} ${dowNames[d.getDay()]}`;
+  document.getElementById('schEvColorPicker').innerHTML = COLORS.map(c =>
+    `<div style="width:32px;height:32px;border-radius:50%;background:${c};cursor:pointer;border:${c===schEvColor?'3px solid var(--text-dark)':'3px solid transparent'}" onclick="selectSchEvColor('${c}',this)"></div>`
+  ).join('');
+  openModal('m-sch-event');
+}
+
+function openSchModal() {
+  editSchId = null;
+  sv('schEvTitle', '');
+  sv('schEvTime', '');
+  sv('schEvEndTime', '');
+  // auto-assign random color from palette
+  const randIdx = Math.floor(Math.random() * COLORS.length);
+  schEvColor = COLORS[randIdx];
+  const d = new Date(schSelectedDate + 'T00:00:00');
+  const dowNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  document.getElementById('schEvDateLabel').textContent =
+    `${d.getFullYear()}.${p2(d.getMonth()+1)}.${p2(d.getDate())} ${dowNames[d.getDay()]}`;
+  // color picker
+  document.getElementById('schEvColorPicker').innerHTML = COLORS.map((c, i) =>
+    `<div style="width:32px;height:32px;border-radius:50%;background:${c};cursor:pointer;border:${c===schEvColor?'3px solid var(--text-dark)':'3px solid transparent'}" onclick="selectSchEvColor('${c}',this)"></div>`
+  ).join('');
+  openModal('m-sch-event');
+}
+
+function selectSchEvColor(c, el) {
+  schEvColor = c;
+  document.querySelectorAll('#schEvColorPicker div').forEach(d => d.style.border = '3px solid transparent');
+  el.style.border = '3px solid var(--text-dark)';
+}
+
+function saveSchEvent() {
+  const title = v('schEvTitle').trim();
+  if (!title) return;
+  if (!DB.schedule) DB.schedule = [];
+  if (editSchId) {
+    const e = DB.schedule.find(x => x.id === editSchId);
+    if (e) { e.title = title; e.time = v('schEvTime'); e.endTime = v('schEvEndTime'); e.color = schEvColor; }
+    editSchId = null;
+  } else {
+    DB.schedule.push({
+      id: uid(), title,
+      date: schSelectedDate,
+      time: v('schEvTime'),
+      endTime: v('schEvEndTime'),
+      color: schEvColor
+    });
+  }
+  saveDB();
+  closeModal('m-sch-event');
+  renderSchTimeline();
+}
+
+function deleteSchEvent(id) {
+  DB.schedule = (DB.schedule || []).filter(e => e.id !== id);
+  saveDB();
+  renderSchTimeline();
+}
+
+// 카테고리 추가
+const COLORS = ['#732231','#9BB1BF','#593A28','#A67360','#D48392','#B73736','#CFAA7D','#A39F87','#AB6C67','#70486D','#768555','#BFAAB2','#5E2D32','#204359'];
+let selectedColor = COLORS[0];
+
+function openSettings() {
+  alert('⚙️ 설정 기능은 곧 추가 예정이에요!');
+}
+
+function saveCat() {
+  const name = v('catName').trim();
+  if (!name) return alert('카테고리 이름을 입력해줘!');
+  DB.categories.push({ id: uid(), name, color: selectedColor });
+  saveDB(); closeModal('m-cat'); renderCalendar();
+}
+
+// ── 캘린더 카테고리 관리 ──
+function openCalCatMgmt() {
+  renderCalCatList();
+  sv('newCalCatName', '');
+  openModal('m-cal-cat');
+}
+
+function renderCalCatList() {
+  document.getElementById('calCatList').innerHTML = DB.categories.map(c => `
+    <div style="display:flex;flex-direction:column;gap:8px;background:var(--chip);border-radius:var(--radius);padding:12px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:14px;height:14px;border-radius:50%;background:${c.color};flex-shrink:0;border:2px solid rgba(0,0,0,.1)"></div>
+        <input value="${c.name}" id="ccname_${c.id}" style="flex:1;border:none;background:transparent;font-size:14px;color:var(--text-dark);outline:none;font-weight:600" onchange="updateCalCatName('${c.id}',this.value)">
+        ${DB.categories.length > 1 ? `<button onclick="deleteCalCat('${c.id}')" style="background:none;border:none;color:var(--text-light);cursor:pointer;font-size:18px;line-height:1;flex-shrink:0">×</button>` : ''}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${COLORS.map(col => `<div onclick="updateCalCatColor('${c.id}','${col}')" style="width:22px;height:22px;border-radius:50%;background:${col};cursor:pointer;border:${col===c.color?'2.5px solid var(--text-dark)':'2.5px solid transparent'};flex-shrink:0"></div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateCalCatName(id, name) {
+  const c = DB.categories.find(x => x.id === id);
+  if (c && name.trim()) { c.name = name.trim(); saveDB(); renderCalendar(); }
+}
+
+function updateCalCatColor(id, color) {
+  const c = DB.categories.find(x => x.id === id);
+  if (c) { c.color = color; saveDB(); renderCalCatList(); renderCalendar(); }
+}
+
+function deleteCalCat(id) {
+  if (DB.categories.length <= 1) return;
+  DB.categories = DB.categories.filter(c => c.id !== id);
+  DB.events.forEach(e => { if (e.catId === id) e.catId = DB.categories[0]?.id; });
+  if (selectedCatFilter === id) selectedCatFilter = null;
+  saveDB(); renderCalCatList(); renderCalendar();
+}
+
+function addCalCatFromMgmt() {
+  const name = v('newCalCatName').trim();
+  if (!name) return;
+  const color = COLORS[DB.categories.length % COLORS.length];
+  DB.categories.push({ id: uid(), name, color });
+  saveDB(); sv('newCalCatName',''); renderCalCatList(); renderCalendar();
+}
+
+function initColorPicker() {
+  document.getElementById('colorPicker').innerHTML = COLORS.map((c,i) =>
+    `<div style="width:32px;height:32px;border-radius:50%;background:${c};cursor:pointer;border:${i===0?'3px solid var(--text-dark)':'3px solid transparent'}" onclick="selectColor('${c}',this)"></div>`
+  ).join('');
+}
+
+function selectColor(c, el) {
+  selectedColor = c;
+  document.querySelectorAll('#colorPicker div').forEach(d => d.style.border = '3px solid transparent');
+  el.style.border = '3px solid var(--text-dark)';
+}
+
+// ══════════════════════════════════════════
+// 유틸
+// ══════════════════════════════════════════
+let _scrollY = 0;
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (!document.querySelector('.modal-overlay.open:not(#' + id + ')')) {
+    _scrollY = window.scrollY || window.pageYOffset;
+    document.body.style.top = '-' + _scrollY + 'px';
+    document.body.classList.add('modal-open');
+  }
+}
+function closeModal(id, e) {
+  if (e && e.target !== document.getElementById(id)) return;
+  document.getElementById(id).classList.remove('open');
+  if (!document.querySelector('.modal-overlay.open')) {
+    document.body.classList.remove('modal-open');
+    document.body.style.top = '';
+    window.scrollTo(0, _scrollY);
+  }
+}
+function v(id) { return document.getElementById(id)?.value || ''; }
+function sv(id, val) { const el = document.getElementById(id); if(el) el.value = val; }
+
+function toggleEl(btn) {
+  btn.classList.toggle('on');
+  const id = btn.id;
+  if (id === 'evPeriodToggle') document.getElementById('evEndDateWrap').style.display = btn.classList.contains('on') ? 'block' : 'none';
+  if (id === 'evRepeatToggle') {
+    document.getElementById('evRepeatWrap').style.display = btn.classList.contains('on') ? 'block' : 'none';
+    if (btn.classList.contains('on')) renderRepeatDayBtns();
+  }
+}
+
+function selectChip(el, groupId) {
+  document.querySelectorAll(`#${groupId} .chip`).forEach(c => {
+    c.classList.remove('sel');
+    c.style.background = 'var(--chip)';
+  });
+  el.classList.add('sel');
+  const color = el.style.color;
+  if (color) el.style.background = hexAlpha(color, 0.15);
+}
+
+function lightenHex(hex, amount) {
+  const c = document.createElement('canvas').getContext('2d');
+  c.fillStyle = hex; c.fillRect(0,0,1,1);
+  const d = c.getImageData(0,0,1,1).data;
+  const r = Math.round(d[0] + (255 - d[0]) * amount);
+  const g = Math.round(d[1] + (255 - d[1]) * amount);
+  const b = Math.round(d[2] + (255 - d[2]) * amount);
+  return `rgb(${r},${g},${b})`;
+}
+
+function hexAlpha(hex, alpha) {
+  // hex can be #rrggbb or rgb(...) or named
+  const c = document.createElement('canvas').getContext('2d');
+  c.fillStyle = hex;
+  c.fillRect(0,0,1,1);
+  const d = c.getImageData(0,0,1,1).data;
+  return `rgba(${d[0]},${d[1]},${d[2]},${alpha})`;
+}
+
+// 시계 업데이트
+function updateClock() {}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+updateClock();
+setInterval(updateClock, 30000);
+initColorPicker();
+updateHeader();
+renderCalendar();
+renderDiary();
+renderTodo();
+// JSONBin 연결돼 있으면 시작 시 동기화
+if (jbKey && jbBin) {
+  document.getElementById('fbSetupWrap').style.display = 'none';
+  document.getElementById('fbConnectedWrap').style.display = 'block';
+  jbPull();
+}
+
+// ── 반복일정 삭제 ──
+function exportData() {
+  const json = localStorage.getItem('life_diary_v2') || '{}';
+  const blob = new Blob([json], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const d = new Date(); const ds = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  a.download = `arnuioe_backup_${ds}.json`;
+  a.click();
+}
+let _importParsed = null;
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      _importParsed = JSON.parse(ev.target.result);
+      document.getElementById('m-import-choice').classList.add('open');
+    } catch {
+      document.getElementById('importMsg').textContent = '⚠ 파일이 올바르지 않아요.';
+    }
+  };
+  reader.readAsText(file);
+}
+function importReplace() {
+  document.getElementById('m-import-choice').classList.remove('open');
+  localStorage.setItem('life_diary_v2', JSON.stringify(_importParsed));
+  document.getElementById('importMsg').textContent = '✓ 완료! 새로고침할게요.';
+  setTimeout(() => location.reload(), 1200);
+}
+function importMerge() {
+  document.getElementById('m-import-choice').classList.remove('open');
+  const imp = _importParsed;
+  const arrKeys = ['events','categories','todos','todoCats','meals','routines','schedule','vlogs'];
+  arrKeys.forEach(k => {
+    if (!imp[k]) return;
+    const existIds = new Set((DB[k]||[]).map(x => x.id));
+    const newItems = imp[k].filter(x => !existIds.has(x.id));
+    DB[k] = [...(DB[k]||[]), ...newItems];
+  });
+  // 다이어리: 날짜별 병합
+  if (imp.diary) {
+    Object.keys(imp.diary).forEach(date => {
+      if (!DB.diary[date]) DB.diary[date] = imp.diary[date];
+    });
+  }
+  // water: 날짜별 병합
+  if (imp.water) {
+    Object.keys(imp.water).forEach(date => {
+      if (!DB.water[date]) DB.water[date] = imp.water[date];
+    });
+  }
+  saveDB();
+  document.getElementById('importMsg').textContent = '✓ 추가 완료! 새로고침할게요.';
+  setTimeout(() => location.reload(), 1200);
+}
+
+let _delRepeatId = null, _delRepeatDate = null;
+
+// ── 반복일정 수정 ──
+let _editRepeatId = null, _editRepeatDate = null;
+function editEventOccurrence(id, dateStr) {
+  const e = DB.events.find(x => x.id === id);
+  if (!e || !e.repeatType) { openEventEditModal(id); return; }
+  _editRepeatId = id; _editRepeatDate = dateStr;
+  document.getElementById('editRepeatDate').textContent = dateStr ? fmtDate(dateStr) : '';
+  document.getElementById('m-edit-repeat').classList.add('open');
+}
+function editRepeatThis() {
+  document.getElementById('m-edit-repeat').classList.remove('open');
+  const e = DB.events.find(x => x.id === _editRepeatId);
+  if (!e) return;
+  // 이 날을 원본에서 제외하고 새 단일 일정으로 열기
+  if (!e.excludeDates) e.excludeDates = [];
+  if (!e.excludeDates.includes(_editRepeatDate)) e.excludeDates.push(_editRepeatDate);
+  saveDB();
+  // 새 단일 이벤트로 모달 열기 (editEventId=null → 새 항목 저장)
+  editEventId = null;
+  sv('evTitle', e.title); sv('evTime', e.time || ''); sv('evEndDate', ''); sv('evEndTime', '');
+  evPickerYear = new Date(_editRepeatDate + 'T00:00:00').getFullYear();
+  evPickerMonth = new Date(_editRepeatDate + 'T00:00:00').getMonth();
+  evPickerDates = new Set([_editRepeatDate]);
+  evRepeatDays = new Set();
+  document.getElementById('evCatChips').innerHTML = DB.categories.map(c => {
+    const isSel = c.id === e.catId;
+    return `<button class="chip ${isSel?'sel':''}" style="color:${c.color};background:${isSel?hexAlpha(c.color,0.15):'var(--chip)'}" data-cat-id="${c.id}" onclick="selectChip(this,'evCatChips')">${c.name}</button>`;
+  }).join('');
+  ['evPeriodToggle','evRepeatToggle'].forEach(id => document.getElementById(id).classList.remove('on'));
+  document.getElementById('evEndDateWrap').style.display = 'none';
+  document.getElementById('evRepeatWrap').style.display = 'none';
+  document.getElementById('evModalTitle').textContent = 'edit (this day)';
+  renderEvPicker();
+  openModal('m-event');
+}
+function editRepeatAll() {
+  document.getElementById('m-edit-repeat').classList.remove('open');
+  openEventEditModal(_editRepeatId);
+}
+function deleteEventOccurrence(id, dateStr) {
+  const e = DB.events.find(x => x.id === id);
+  if (!e || !e.repeatType) { deleteEvent(id); return; }
+  _delRepeatId = id; _delRepeatDate = dateStr;
+  document.getElementById('delRepeatDate').textContent = dateStr ? fmtDate(dateStr) : '';
+  document.getElementById('m-del-repeat').classList.add('open');
+}
+function delRepeatThis() {
+  const e = DB.events.find(x => x.id === _delRepeatId);
+  if (e) {
+    if (!e.excludeDates) e.excludeDates = [];
+    e.excludeDates.push(_delRepeatDate);
+    saveDB(); renderCalendar();
+    if (curTab === 'schedule') renderSchedule();
+  }
+  document.getElementById('m-del-repeat').classList.remove('open');
+}
+function delRepeatAll() {
+  deleteEvent(_delRepeatId);
+  document.getElementById('m-del-repeat').classList.remove('open');
+}
+</script>
+
+<!-- 설정 모달 -->
+<div class="modal-overlay" id="m-settings" onclick="closeModal('m-settings',event)">
+  <div class="modal-sheet">
+    <div class="modal-title">settings</div>
+    <div style="height:16px"></div>
+    <div style="font-size:13px;font-weight:600;color:var(--text-light);letter-spacing:.5px;margin-bottom:10px">DATA BACKUP</div>
+    <button onclick="exportData()" style="width:100%;padding:15px;border:none;border-radius:14px;background:var(--chip);color:var(--text-dark);font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;text-align:left">
+      데이터 내보내기 (JSON)
+    </button>
+    <label style="width:100%;display:block">
+      <div style="width:100%;padding:15px;border:none;border-radius:14px;background:var(--chip);color:var(--text-dark);font-size:15px;font-weight:600;cursor:pointer;box-sizing:border-box">
+        데이터 가져오기 (JSON)
+      </div>
+      <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+    </label>
+    <div id="importMsg" style="font-size:12px;color:var(--accent);margin-top:8px;text-align:center"></div>
+    <div style="height:12px"></div>
+    <div style="font-size:11px;color:var(--text-light);line-height:1.6;text-align:center">내보내기 → 다른 기기에서 가져오기<br>하면 데이터가 동기화돼요</div>
+  </div>
+</div>
+
+<!-- 가져오기 방식 선택 모달 -->
+<div id="m-import-choice" style="position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);transition:.2s" onclick="if(event.target===this)this.classList.remove('open')">
+  <div style="background:white;width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:28px 24px 40px">
+    <div style="font-size:17px;font-weight:700;color:var(--text-dark);margin-bottom:6px">데이터 가져오기</div>
+    <div style="font-size:13px;color:var(--text-light);margin-bottom:24px">어떻게 가져올까요?</div>
+    <button onclick="importMerge()" style="width:100%;padding:15px;border:none;border-radius:14px;background:var(--chip);color:var(--text-dark);font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px">추가 — 기존 데이터 유지하고 새 항목만 추가</button>
+    <button onclick="importReplace()" style="width:100%;padding:15px;border:none;border-radius:14px;background:#fff0f0;color:#c0143c;font-size:15px;font-weight:600;cursor:pointer">교체 — 기존 데이터 전부 덮어쓰기</button>
+  </div>
+</div>
+
+<!-- 반복일정 수정 선택 모달 -->
+<div id="m-edit-repeat" style="position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);transition:.2s" onclick="if(event.target===this)this.classList.remove('open')">
+  <div style="background:white;width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:28px 24px 40px">
+    <div style="font-size:17px;font-weight:700;color:var(--text-dark);margin-bottom:6px">반복 일정 수정</div>
+    <div style="font-size:13px;color:var(--text-light);margin-bottom:24px"><span id="editRepeatDate"></span> 일정을 어떻게 수정할까요?</div>
+    <button onclick="editRepeatThis()" style="width:100%;padding:15px;border:none;border-radius:14px;background:var(--chip);color:var(--text-dark);font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px">이 날만 수정</button>
+    <button onclick="editRepeatAll()" style="width:100%;padding:15px;border:none;border-radius:14px;background:var(--primary-light);color:var(--primary);font-size:15px;font-weight:600;cursor:pointer">전체 수정</button>
+  </div>
+</div>
+
+<!-- 반복일정 삭제 선택 모달 -->
+<div id="m-del-repeat" style="position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);transition:.2s" onclick="if(event.target===this)this.classList.remove('open')">
+  <div style="background:white;width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:28px 24px 40px">
+    <div style="font-size:17px;font-weight:700;color:var(--text-dark);margin-bottom:6px">반복 일정 삭제</div>
+    <div style="font-size:13px;color:var(--text-light);margin-bottom:24px"><span id="delRepeatDate"></span> 일정을 어떻게 삭제할까요?</div>
+    <button onclick="delRepeatThis()" style="width:100%;padding:15px;border:none;border-radius:14px;background:var(--chip);color:var(--text-dark);font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px">이 날만 삭제</button>
+    <button onclick="delRepeatAll()" style="width:100%;padding:15px;border:none;border-radius:14px;background:#fff0f0;color:#c0143c;font-size:15px;font-weight:600;cursor:pointer">전체 삭제</button>
+  </div>
+</div>
+<style>
+#m-del-repeat,#m-edit-repeat,#m-import-choice{opacity:0;pointer-events:none}
+#m-del-repeat.open,#m-edit-repeat.open,#m-import-choice.open{opacity:1;pointer-events:all}
+</style>
+</body>
+</html>
