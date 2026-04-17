@@ -106,7 +106,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
 .cal-dow span{text-align:center;font-size:11px;font-weight:600;color:var(--text-dark);padding:2px 0}
 
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 12px 4px;row-gap:0}
-.cal-cell{display:flex;flex-direction:column;align-items:center;min-height:38px;cursor:pointer;padding:1px 1px}
+.cal-cell{display:flex;flex-direction:column;align-items:center;min-height:42px;cursor:pointer;padding:1px 1px}
 .cal-cell:active .cal-num{background:var(--chip)}
 .cal-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--text-dark);transition:.15s}
 .cal-cell.other .cal-num{color:#c8c4be}
@@ -350,10 +350,10 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
         <div class="diet-cal-sub" id="calGoalSub">Goal 1,800 kcal</div>
         <div class="diet-prog-bg"><div class="diet-prog-fill" id="calProg" style="width:0%"></div></div>
         <div class="macros">
-          <div class="macro"><div class="macro-val" id="mCarbs">0g</div><div class="macro-lbl">Carbs</div></div>
-          <div class="macro"><div class="macro-val" id="mProt">0g</div><div class="macro-lbl">Protein</div></div>
-          <div class="macro"><div class="macro-val" id="mFat">0g</div><div class="macro-lbl">Fat</div></div>
-          <div class="macro" onclick="openWaterModal()" style="cursor:pointer"><div class="macro-val" id="mWater">0L</div><div class="macro-lbl">Water</div></div>
+          <div class="macro"><div class="macro-val" id="mCarbs">0g</div><div id="mCarbsPct" style="font-size:10px;color:var(--primary);font-weight:600;min-height:13px"></div><div class="macro-lbl">Carbs</div></div>
+          <div class="macro"><div class="macro-val" id="mProt">0g</div><div id="mProtPct" style="font-size:10px;color:var(--primary);font-weight:600;min-height:13px"></div><div class="macro-lbl">Protein</div></div>
+          <div class="macro"><div class="macro-val" id="mFat">0g</div><div id="mFatPct" style="font-size:10px;color:var(--primary);font-weight:600;min-height:13px"></div><div class="macro-lbl">Fat</div></div>
+          <div class="macro" onclick="openWaterModal()" style="cursor:pointer"><div class="macro-val" id="mWater">0L</div><div style="min-height:13px"></div><div class="macro-lbl">Water</div></div>
         </div>
       </div>
       <div style="height:12px"></div>
@@ -1670,10 +1670,17 @@ function renderDiet() {
   document.getElementById('totalCal').textContent = total.toLocaleString();
   document.getElementById('calGoalSub').textContent = `Goal ${goal.toLocaleString()} kcal · ${Math.max(0, goal-total).toLocaleString()} kcal left`;
   document.getElementById('calProg').style.width = Math.min(100, total/goal*100) + '%';
+  const macroCal = carbs * 4 + prot * 4 + fat * 9;
+  const carbPct = macroCal ? Math.round(carbs * 4 / macroCal * 100) : 0;
+  const protPct = macroCal ? Math.round(prot * 4 / macroCal * 100) : 0;
+  const fatPct  = macroCal ? Math.round(fat  * 9 / macroCal * 100) : 0;
   document.getElementById('mCarbs').textContent = carbs.toFixed(1) + 'g';
-  document.getElementById('mProt').textContent = prot.toFixed(1) + 'g';
-  document.getElementById('mFat').textContent = fat.toFixed(1) + 'g';
+  document.getElementById('mProt').textContent  = prot.toFixed(1)  + 'g';
+  document.getElementById('mFat').textContent   = fat.toFixed(1)   + 'g';
   document.getElementById('mWater').textContent = water.toFixed(1) + 'L';
+  document.getElementById('mCarbsPct').textContent = macroCal ? carbPct + '%' : '';
+  document.getElementById('mProtPct').textContent  = macroCal ? protPct + '%' : '';
+  document.getElementById('mFatPct').textContent   = macroCal ? fatPct  + '%' : '';
 
   const filledTypes = mealTypes.filter(mt => meals.some(m => m.type === mt.id));
   let html = '';
