@@ -301,7 +301,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
     <button id="routineViewBtn" onclick="openRoutineMonthly()" style="display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);padding:0;line-height:1;margin-bottom:4px">☰</button>
     <button id="calAddBtn" onclick="openAddEventModal()" style="display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);padding:0;line-height:1">＋</button>
     <button id="calViewBtn" onclick="toggleCalView()" style="display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-mid);padding:0;line-height:1">☰</button>
-    <button onclick="openModal('m-settings')" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-mid);padding:0;line-height:1">⚙</button>
+    <button onclick="openSettings()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-mid);padding:0;line-height:1">⚙</button>
   </div>
 </div>
 
@@ -3209,8 +3209,73 @@ function deleteSchEvent(id) {
 const COLORS = ['#732231','#9BB1BF','#593A28','#A67360','#D48392','#B73736','#CFAA7D','#A39F87','#AB6C67','#70486D','#768555','#BFAAB2','#5E2D32','#204359'];
 let selectedColor = COLORS[0];
 
+const SYNC_KEY = 'arnuioe_sync';
+
 function openSettings() {
-  alert('⚙️ 설정 기능은 곧 추가 예정이에요!');
+  const cfg = JSON.parse(localStorage.getItem(SYNC_KEY) || '{}');
+  document.getElementById('ghToken').value = cfg.token || '';
+  document.getElementById('ghGistId').value = cfg.gistId || '';
+  document.getElementById('syncMsg').textContent = '';
+  openModal('m-settings');
+}
+
+function saveSyncCfg() {
+  const token = document.getElementById('ghToken').value.trim();
+  const gistId = document.getElementById('ghGistId').value.trim();
+  localStorage.setItem(SYNC_KEY, JSON.stringify({ token, gistId }));
+  return { token, gistId };
+}
+
+async function syncUpload() {
+  const { token, gistId } = saveSyncCfg();
+  if (!token) return document.getElementById('syncMsg').textContent = '⚠ 토큰을 입력해줘!';
+  const msg = document.getElementById('syncMsg');
+  msg.textContent = '업로드 중...';
+  const content = localStorage.getItem('life_diary_v2') || '{}';
+  const body = { description: 'arnuioe sync', public: false, files: { 'arnuioe_data.json': { content } } };
+  try {
+    let res, data;
+    if (gistId) {
+      res = await fetch(`https://api.github.com/gists/${gistId}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    } else {
+      res = await fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    }
+    data = await res.json();
+    if (data.id) {
+      document.getElementById('ghGistId').value = data.id;
+      localStorage.setItem(SYNC_KEY, JSON.stringify({ token, gistId: data.id }));
+      msg.textContent = '✓ 업로드 완료!';
+    } else {
+      msg.textContent = '⚠ 실패: ' + (data.message || '오류');
+    }
+  } catch(e) { msg.textContent = '⚠ 네트워크 오류'; }
+}
+
+async function syncDownload() {
+  const { token, gistId } = saveSyncCfg();
+  const msg = document.getElementById('syncMsg');
+  if (!token || !gistId) return msg.textContent = '⚠ 토큰과 Gist ID를 입력해줘!';
+  msg.textContent = '다운로드 중...';
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const content = data.files?.['arnuioe_data.json']?.content;
+    if (!content) return msg.textContent = '⚠ 데이터를 찾을 수 없어';
+    JSON.parse(content); // 유효성 검사
+    localStorage.setItem('life_diary_v2', content);
+    msg.textContent = '✓ 다운로드 완료! 새로고침할게요.';
+    setTimeout(() => location.reload(), 1200);
+  } catch(e) { msg.textContent = '⚠ 오류: ' + e.message; }
 }
 
 function saveCat() {
@@ -3501,8 +3566,15 @@ function delRepeatAll() {
       <input type="file" accept=".json" onchange="importData(event)" style="display:none">
     </label>
     <div id="importMsg" style="font-size:12px;color:var(--accent);margin-top:8px;text-align:center"></div>
-    <div style="height:12px"></div>
-    <div style="font-size:11px;color:var(--text-light);line-height:1.6;text-align:center">내보내기 → 다른 기기에서 가져오기<br>하면 데이터가 동기화돼요</div>
+    <div style="height:20px"></div>
+    <div style="font-size:13px;font-weight:600;color:var(--text-light);letter-spacing:.5px;margin-bottom:10px">CLOUD SYNC (GitHub)</div>
+    <input class="input" id="ghToken" type="password" placeholder="GitHub Token (ghp_...)" style="margin-bottom:8px">
+    <input class="input" id="ghGistId" placeholder="Gist ID (첫 업로드 후 자동 저장)" style="margin-bottom:10px">
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button onclick="syncUpload()" style="flex:1;padding:12px;border:none;border-radius:12px;background:var(--primary);color:white;font-size:14px;font-weight:700;cursor:pointer">Upload ↑</button>
+      <button onclick="syncDownload()" style="flex:1;padding:12px;border:none;border-radius:12px;background:var(--chip);color:var(--text-dark);font-size:14px;font-weight:700;cursor:pointer">Download ↓</button>
+    </div>
+    <div id="syncMsg" style="font-size:12px;color:var(--accent);text-align:center;min-height:16px"></div>
   </div>
 </div>
 
