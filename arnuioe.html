@@ -19,8 +19,8 @@
   --radius:14px;--radius-lg:20px;
   --shadow:0 2px 12px rgba(0,0,0,0.06);
 }
-html,body{height:100%;background:var(--bg);font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',sans-serif;overflow-x:hidden}
-body{display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative;overflow-x:hidden}
+html,body{height:100%;background:var(--bg);font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative;overflow:hidden}
 body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
 /* desktop scrollbar */
 ::-webkit-scrollbar{width:6px;height:6px}
@@ -38,7 +38,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
 
 /* ── SCREENS ── */
 .screens{flex:1;overflow:hidden;position:relative}
-.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transition:opacity .2s}
+.screen{position:absolute;inset:0;overflow:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transition:opacity .2s}
 .screen::-webkit-scrollbar{display:none}
 .screen.active{opacity:1;pointer-events:all}
 .screen-inner{padding-bottom:20px}
@@ -335,9 +335,13 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
   </div>
 
   <!-- ② DIET -->
-  <div class="screen" id="s-diet">
-    <div class="screen-inner">
+  <div class="screen" id="s-diet" style="display:flex;flex-direction:column;overflow:hidden">
+    <!-- 고정: 날짜 스크롤 -->
+    <div style="flex-shrink:0;background:var(--bg)">
       <div class="date-scroll" id="dietDateScroll" style="padding-top:8px"></div>
+    </div>
+    <!-- 스크롤 영역 -->
+    <div style="flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch">
       <div style="height:16px"></div>
       <div class="diet-banner">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -361,6 +365,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
       <div id="fastingCard" style="margin:0 16px 4px;background:var(--bg);border-radius:var(--radius-lg);padding:14px 18px;border:1.5px solid var(--divider)"></div>
       <div style="height:20px"></div>
       <div id="mealSections"></div>
+      <div style="height:20px"></div>
     </div>
   </div>
 
@@ -447,22 +452,26 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
 
   <!-- ⑤ ROUTINE -->
   <div class="screen" id="s-routine" style="display:flex;flex-direction:column;overflow:hidden">
-    <!-- 퍼센테이지 고정 -->
-    <div style="flex-shrink:0;background:var(--bg);text-align:center;padding:32px 16px 20px">
+    <!-- 퍼센테이지 + today 제목 고정 -->
+    <div style="flex-shrink:0;background:var(--bg);text-align:center;padding:32px 16px 0">
       <div id="routineRate" style="font-size:42px;font-weight:800;color:var(--text-dark);letter-spacing:-1px">0%</div>
+      <div class="section-title" style="text-align:left">today</div>
     </div>
     <!-- 스크롤 영역 -->
-    <div style="flex:1;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
-      <div class="section-title">today</div>
+    <div style="flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch">
       <div id="routineList" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;padding-bottom:20px"></div>
     </div>
   </div>
 
   <!-- ⑥ TODO -->
-  <div class="screen" id="s-todo">
-    <div class="screen-inner">
+  <div class="screen" id="s-todo" style="display:flex;flex-direction:column;overflow:hidden">
+    <!-- 고정: 카테고리 칩 -->
+    <div style="flex-shrink:0;background:var(--bg)">
       <div class="todo-filter" id="todoFilter"></div>
-      <div id="todoGroups"></div>
+    </div>
+    <!-- 스크롤 영역 -->
+    <div style="flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+      <div id="todoGroups" style="padding-bottom:20px"></div>
     </div>
   </div>
 
@@ -1597,6 +1606,7 @@ function saveEvent() {
       ev.endDate = isPeriod ? (endDate || dates[dates.length-1]) : null;
       ev.endTime = endTime || null;
       ev.repeatType = repeatType; ev.repeatDays = repeatDays;
+      if (repeatType) ev.excludeDates = [];
     }
     editEventId = null;
   } else {
