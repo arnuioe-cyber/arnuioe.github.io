@@ -38,7 +38,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
 
 /* ── SCREENS ── */
 .screens{flex:1;overflow:hidden;position:relative}
-.screen{position:absolute;inset:0;overflow:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transition:opacity .2s}
+.screen{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transition:opacity .2s}
 .screen::-webkit-scrollbar{display:none}
 .screen.active{opacity:1;pointer-events:all}
 .screen-inner{padding-bottom:20px}
@@ -72,7 +72,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
 .input:focus{background:#e8e4fd;box-shadow:0 0 0 2px var(--primary-light)}
 
 /* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;touch-action:none}
+.modal-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.4);z-index:100;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;touch-action:none}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal-sheet{background:white;border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:28px 24px 48px;max-height:90vh;overflow-y:auto;overflow-x:hidden;transform:translateY(100%);transition:.3s cubic-bezier(.32,.72,0,1);touch-action:pan-y;overscroll-behavior:contain;box-sizing:border-box}
 .modal-overlay.open .modal-sheet{transform:translateY(0)}
@@ -956,6 +956,11 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
 </div>
 
 <script>
+window.onerror = function(msg, src, line, col, err) {
+  document.body.style.cssText = 'padding:20px;background:white;color:black';
+  document.body.innerHTML = '<h3 style="color:red">JS Error</h3><p>' + msg + '</p><p>Line: ' + line + '</p><pre style="font-size:11px;white-space:pre-wrap">' + (err && err.stack ? err.stack : '') + '</pre>';
+  return true;
+};
 // ══════════════════════════════════════════
 // 데이터 저장소 (localStorage)
 // ══════════════════════════════════════════
@@ -3623,7 +3628,7 @@ function delRepeatAll() {
 </div>
 
 <!-- 가져오기 방식 선택 모달 -->
-<div id="m-import-choice" style="position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);transition:.2s" onclick="if(event.target===this)this.classList.remove('open')">
+<div id="m-import-choice" style="position:fixed;top:0;right:0;bottom:0;left:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);transition:.2s" onclick="if(event.target===this)this.classList.remove('open')">
   <div style="background:white;width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:28px 24px 40px">
     <div style="font-size:17px;font-weight:700;color:var(--text-dark);margin-bottom:6px">데이터 가져오기</div>
     <div style="font-size:13px;color:var(--text-light);margin-bottom:24px">어떻게 가져올까요?</div>
@@ -3633,7 +3638,7 @@ function delRepeatAll() {
 </div>
 
 <!-- 반복일정 수정 선택 모달 -->
-<div id="m-edit-repeat" style="position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);transition:.2s" onclick="if(event.target===this)this.classList.remove('open')">
+<div id="m-edit-repeat" style="position:fixed;top:0;right:0;bottom:0;left:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);transition:.2s" onclick="if(event.target===this)this.classList.remove('open')">
   <div style="background:white;width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:28px 24px 40px">
     <div style="font-size:17px;font-weight:700;color:var(--text-dark);margin-bottom:6px">반복 일정 수정</div>
     <div style="font-size:13px;color:var(--text-light);margin-bottom:24px"><span id="editRepeatDate"></span> 일정을 어떻게 수정할까요?</div>
@@ -3643,7 +3648,7 @@ function delRepeatAll() {
 </div>
 
 <!-- 반복일정 삭제 선택 모달 -->
-<div id="m-del-repeat" style="position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);transition:.2s" onclick="if(event.target===this)this.classList.remove('open')">
+<div id="m-del-repeat" style="position:fixed;top:0;right:0;bottom:0;left:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);transition:.2s" onclick="if(event.target===this)this.classList.remove('open')">
   <div style="background:white;width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:28px 24px 40px">
     <div style="font-size:17px;font-weight:700;color:var(--text-dark);margin-bottom:6px">반복 일정 삭제</div>
     <div style="font-size:13px;color:var(--text-light);margin-bottom:24px"><span id="delRepeatDate"></span> 일정을 어떻게 삭제할까요?</div>
