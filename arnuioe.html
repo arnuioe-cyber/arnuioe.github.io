@@ -224,11 +224,12 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
 .date-cell:not(.today-sel) .dc-dow{color:var(--text-light)}
 .date-cell:not(.today-sel) .dc-num{color:var(--text-dark)}
 
-.timeline{padding:0 16px}
-.tl-row{display:flex;gap:10px;min-height:52px}
+.timeline{padding:0 16px;position:relative}
+.tl-row{display:flex;gap:10px;height:60px}
 .tl-time{width:38px;font-size:11px;color:var(--text-light);text-align:right;padding-top:4px;flex-shrink:0}
-.tl-line-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.tl-line-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:12px}
 .tl-line{width:1px;flex:1;background:var(--divider)}
+.tl-events-overlay{position:absolute;top:0;left:70px;right:0}
 .tl-dot-now{width:10px;height:10px;border-radius:50%;background:#ef5350;margin:-5px 0}
 .tl-events{flex:1;padding:2px 0 4px}
 .tl-block{border-radius:10px;padding:9px 12px;margin-bottom:4px;cursor:pointer}
@@ -946,6 +947,18 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
 // ══════════════════════════════════════════
 const KEY = 'life_diary_v2';
 let DB = loadDB();
+
+// 완료된 투두 하루 뒤 자동삭제
+(function autoCleanTodos() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const before = DB.todos.length;
+  DB.todos = DB.todos.filter(t => {
+    if (!t.done || !t.completedAt) return true;
+    const comp = new Date(t.completedAt + 'T00:00:00');
+    return (today - comp) < 86400000; // 하루 미만이면 유지
+  });
+  if (DB.todos.length !== before) saveDB();
+})();
 
 function loadDB() {
   try {
@@ -2703,49 +2716,68 @@ function selectSchDate(ds) {
 }
 
 function renderSchTimeline() {
-  // calendar events (editable here too)
+  const HOUR_H = 60; // px per hour
+
   const calEvents = getEventsForDate(schSelectedDate).map(e => {
     const cat = DB.categories.find(c => c.id === e.catId);
     return { title: e.title, time: e.time || '', endTime: e.endTime || '', color: cat ? cat.color : 'var(--primary)', evId: e.id };
   });
-  // schedule-only events (not shown on calendar)
   const schEvents = (DB.schedule || []).filter(e => e.date === schSelectedDate).map(e => ({
     title: e.title, time: e.time || '', endTime: e.endTime || '', color: e.color || 'var(--primary)', schId: e.id
   }));
-  const allEvents = [...calEvents, ...schEvents];
+  const allEvents = [...calEvents, ...schEvents].filter(e => e.time);
 
   const now = new Date();
-  const nowH = now.getHours();
   const isToday = schSelectedDate === todayStr();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
 
-  let schHtml = '';
+  // 시간 라벨 + 선 rows
+  let rowsHtml = '';
   for (let h = 0; h <= 23; h++) {
     const label = h === 0 ? '12am' : h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h-12}pm`;
-    const hEvents = allEvents.filter(e => {
-      const hr = e.time ? parseInt(e.time.split(':')[0]) : -1;
-      return hr === h;
-    });
-    const evHtml = hEvents.map(e => {
-      const delBtn = e.schId
-        ? `<button onclick="event.stopPropagation();deleteSchEvent('${e.schId}')" style="position:absolute;top:4px;right:6px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:16px;line-height:1">×</button>`
-        : `<button onclick="event.stopPropagation();deleteEventOccurrence('${e.evId}','${schSelectedDate}')" style="position:absolute;top:4px;right:6px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:16px;line-height:1">×</button>`;
-      const editFn = e.schId ? `openSchEditModal('${e.schId}')` : `editEventOccurrence('${e.evId}','${schSelectedDate}')`;
-      return `<div class="tl-block" style="background:${e.color};color:white;border-radius:10px;padding:8px 10px;position:relative;cursor:pointer" onclick="${editFn}">
-        ${delBtn}
-        <div class="tl-block-title" style="color:white">${e.title}</div>
-        <div class="tl-block-time" style="color:rgba(255,255,255,.75)">${e.time}${e.endTime?' – '+e.endTime:''}</div>
-      </div>`;
-    }).join('');
-    const isNow = isToday && h === nowH;
-    schHtml += `
-      ${isNow ? `<div class="tl-now-line"><div class="tl-now-dot"></div><div class="tl-now-hr"></div></div>` : ''}
-      <div class="tl-row">
-        <div class="tl-time">${label}</div>
-        <div class="tl-line-wrap"><div class="tl-line"></div></div>
-        <div class="tl-events">${evHtml}</div>
-      </div>`;
+    rowsHtml += `<div class="tl-row">
+      <div class="tl-time">${label}</div>
+      <div class="tl-line-wrap"><div class="tl-line"></div></div>
+    </div>`;
   }
-  document.getElementById('timeline').innerHTML = schHtml;
+
+  // 이벤트 overlay
+  const eventsHtml = allEvents.map(e => {
+    const [sh, sm] = e.time.split(':').map(Number);
+    const startMins = sh * 60 + (sm || 0);
+    let endMins = startMins + 60; // 기본 1시간
+    if (e.endTime) {
+      const [eh, em] = e.endTime.split(':').map(Number);
+      endMins = eh * 60 + (em || 0);
+    }
+    const duration = Math.max(30, endMins - startMins);
+    const top = startMins / 60 * HOUR_H;
+    const height = duration / 60 * HOUR_H - 4;
+
+    const delBtn = e.schId
+      ? `<button onclick="event.stopPropagation();deleteSchEvent('${e.schId}')" style="position:absolute;top:4px;right:6px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:15px;line-height:1">×</button>`
+      : `<button onclick="event.stopPropagation();deleteEventOccurrence('${e.evId}','${schSelectedDate}')" style="position:absolute;top:4px;right:6px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:15px;line-height:1">×</button>`;
+    const editFn = e.schId ? `openSchEditModal('${e.schId}')` : `editEventOccurrence('${e.evId}','${schSelectedDate}')`;
+
+    return `<div onclick="${editFn}" style="position:absolute;top:${top}px;left:4px;right:4px;height:${height}px;background:${e.color};border-radius:10px;padding:6px 10px;cursor:pointer;overflow:hidden;box-sizing:border-box">
+      ${delBtn}
+      <div style="font-size:13px;font-weight:600;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.title}</div>
+      ${height > 36 ? `<div style="font-size:10px;color:rgba(255,255,255,.8);margin-top:2px">${e.time}${e.endTime ? ' – ' + e.endTime : ''}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // 현재 시간 선
+  const nowLine = isToday ? `<div style="position:absolute;top:${nowMins/60*HOUR_H}px;left:0;right:4px;display:flex;align-items:center;z-index:10">
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0"></div>
+    <div style="flex:1;height:1.5px;background:var(--primary)"></div>
+  </div>` : '';
+
+  document.getElementById('timeline').innerHTML = `
+    ${rowsHtml}
+    <div class="tl-events-overlay" style="position:absolute;top:0;left:70px;right:16px;height:${24*HOUR_H}px">
+      ${nowLine}
+      ${eventsHtml}
+    </div>`;
 }
 
 // ══════════════════════════════════════════
@@ -2901,6 +2933,7 @@ function saveRoutine() {
 // ══════════════════════════════════════════
 let todoFilter = 'all';
 let todoViewMode = 'urgency'; // 'urgency' | 'date'
+let todoDoneOpen = false;
 
 function renderTodo() {
   const filterEl = document.getElementById('todoFilter');
@@ -2944,13 +2977,14 @@ function renderTodo() {
 
   let groupsHtml = '';
   if (todoViewMode === 'urgency') {
-    const groups = [
+    const activeGroups = [
       { label: 'due today', items: filtered.filter(t => !t.done && t.dueDate && t.dueDate <= today) },
       { label: 'this week', items: filtered.filter(t => !t.done && t.dueDate && t.dueDate > today && t.dueDate <= offsetDate(7)) },
       { label: 'later',     items: filtered.filter(t => !t.done && (!t.dueDate || t.dueDate > offsetDate(7))) },
-      { label: 'done',      items: filtered.filter(t => t.done) },
     ].filter(g => g.items.length > 0);
-    groupsHtml = groups.map(g => `
+    const doneItems = filtered.filter(t => t.done);
+
+    groupsHtml = activeGroups.map(g => `
       <div class="todo-group">
         <div class="todo-group-hdr">
           <div class="todo-group-name">${g.label}</div>
@@ -2959,10 +2993,25 @@ function renderTodo() {
         ${g.items.map(t => todoItemHtml(t)).join('')}
       </div>
     `).join('');
+
+    if (doneItems.length > 0) {
+      groupsHtml += `
+        <div class="todo-group">
+          <div class="todo-group-hdr" onclick="todoDoneOpen=!todoDoneOpen;renderTodo()" style="cursor:pointer">
+            <div class="todo-group-name">completed</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="todo-group-cnt">${doneItems.length}</div>
+              <div style="font-size:12px;color:var(--text-light)">${todoDoneOpen ? '▲' : '▼'}</div>
+            </div>
+          </div>
+          ${todoDoneOpen ? doneItems.map(t => todoItemHtml(t)).join('') : ''}
+        </div>`;
+    }
   } else {
     // by date view
     const dateMap = {};
-    filtered.forEach(t => {
+    const doneDateItems = filtered.filter(t => t.done);
+    filtered.filter(t => !t.done).forEach(t => {
       const key = t.dueDate || 'no date';
       if (!dateMap[key]) dateMap[key] = [];
       dateMap[key].push(t);
@@ -2981,6 +3030,19 @@ function renderTodo() {
         ${dateMap[k].map(t => todoItemHtml(t)).join('')}
       </div>
     `).join('') : '';
+    if (doneDateItems.length > 0) {
+      groupsHtml += `
+        <div class="todo-group">
+          <div class="todo-group-hdr" onclick="todoDoneOpen=!todoDoneOpen;renderTodo()" style="cursor:pointer">
+            <div class="todo-group-name">completed</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="todo-group-cnt">${doneDateItems.length}</div>
+              <div style="font-size:12px;color:var(--text-light)">${todoDoneOpen ? '▲' : '▼'}</div>
+            </div>
+          </div>
+          ${todoDoneOpen ? doneDateItems.map(t => todoItemHtml(t)).join('') : ''}
+        </div>`;
+    }
   }
 
   document.getElementById('todoGroups').innerHTML = viewToggle + groupsHtml;
@@ -2998,7 +3060,11 @@ function setTodoView(mode) {
 
 function toggleTodo(id) {
   const t = DB.todos.find(x => x.id === id);
-  if (t) { t.done = !t.done; saveDB(); renderTodo(); updateHeader(); }
+  if (t) {
+    t.done = !t.done;
+    t.completedAt = t.done ? todayStr() : null;
+    saveDB(); renderTodo(); updateHeader();
+  }
 }
 function delTodo(id) {
   DB.todos = DB.todos.filter(t => t.id !== id);
