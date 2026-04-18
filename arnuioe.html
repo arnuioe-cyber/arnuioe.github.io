@@ -989,78 +989,8 @@ function loadDB() {
   } catch { return getDefaultDB(); }
 }
 
-// ── JSONBin 동기화 ──
-const JB_KEY_STORE = 'arnuioe_jb_key';
-const JB_BIN_STORE = 'arnuioe_jb_bin';
-let jbKey = localStorage.getItem(JB_KEY_STORE) || null;
-let jbBin = localStorage.getItem(JB_BIN_STORE) || null;
-
 function saveDB() {
   localStorage.setItem(KEY, JSON.stringify(DB));
-  if (jbKey && jbBin) jbPush();
-}
-
-function jbPush() {
-  if (!jbKey || !jbBin) return;
-  fetch('https://api.jsonbin.io/v3/b/' + jbBin, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'X-Master-Key': jbKey },
-    body: JSON.stringify(DB)
-  }).catch(() => {});
-}
-
-async function jbPull() {
-  if (!jbKey || !jbBin) return;
-  updateSyncStatus();
-  try {
-    const res = await fetch('https://api.jsonbin.io/v3/b/' + jbBin + '/latest', {
-      headers: { 'X-Master-Key': jbKey }
-    });
-    const json = await res.json();
-    const data = json.record;
-    if (data && typeof data === 'object' && data.categories) {
-      DB = data;
-      localStorage.setItem(KEY, JSON.stringify(DB));
-      renderCalendar(); renderDiary(); renderTodo();
-      if (typeof renderSchedule === 'function') renderSchedule();
-    }
-    updateSyncStatus('ok');
-  } catch(e) {
-    updateSyncStatus('err');
-  }
-}
-
-async function saveJbKey() {
-  const key = document.getElementById('jbKeyInput').value.trim();
-  if (!key) return;
-  updateSyncStatus();
-  try {
-    // 기존 bin 찾거나 새로 생성
-    const res = await fetch('https://api.jsonbin.io/v3/b', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': key, 'X-Bin-Name': 'arnuioe', 'X-Bin-Private': 'true' },
-      body: JSON.stringify(DB)
-    });
-    const json = await res.json();
-    if (!json.metadata?.id) throw new Error('bin 생성 실패');
-    jbKey = key; jbBin = json.metadata.id;
-    localStorage.setItem(JB_KEY_STORE, jbKey);
-    localStorage.setItem(JB_BIN_STORE, jbBin);
-    document.getElementById('fbSetupWrap').style.display = 'none';
-    document.getElementById('fbConnectedWrap').style.display = 'block';
-    await jbPull();
-  } catch(e) {
-    updateSyncStatus('err');
-  }
-}
-
-function disconnectFb() {
-  jbKey = null; jbBin = null;
-  localStorage.removeItem(JB_KEY_STORE);
-  localStorage.removeItem(JB_BIN_STORE);
-  document.getElementById('fbSetupWrap').style.display = 'block';
-  document.getElementById('fbConnectedWrap').style.display = 'none';
-  document.getElementById('syncStatus').textContent = '';
 }
 
 function updateSyncStatus(state) {
@@ -3541,12 +3471,6 @@ updateHeader();
 renderCalendar();
 renderDiary();
 renderTodo();
-// JSONBin 연결돼 있으면 시작 시 동기화
-if (jbKey && jbBin) {
-  document.getElementById('fbSetupWrap').style.display = 'none';
-  document.getElementById('fbConnectedWrap').style.display = 'block';
-  jbPull();
-}
 
 // ── 반복일정 삭제 ──
 function exportData() {
