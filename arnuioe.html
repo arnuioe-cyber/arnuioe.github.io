@@ -757,6 +757,11 @@ body.modal-open{overflow:hidden;position:fixed;width:100%;max-width:430px}
     <div class="chips" id="todoCatChips" style="flex-wrap:wrap;gap:8px"></div>
     <div class="modal-label">due date (optional)</div>
     <input class="input" type="date" id="todoDue">
+    <div class="modal-label">time (optional)</div>
+    <div style="display:flex;gap:8px">
+      <input class="input" type="time" id="todoStartTime" placeholder="start" style="flex:1">
+      <input class="input" type="time" id="todoEndTime" placeholder="end" style="flex:1">
+    </div>
     <div style="height:20px"></div>
     <button class="btn-primary" onclick="saveTodo()">save</button>
   </div>
@@ -3068,6 +3073,7 @@ function toggleTodo(id) {
 }
 function delTodo(id) {
   DB.todos = DB.todos.filter(t => t.id !== id);
+  DB.schedule = (DB.schedule || []).filter(s => s.todoId !== id);
   saveDB(); renderTodo(); updateHeader();
 }
 
@@ -3079,6 +3085,8 @@ function openTodoEditModal(id) {
   if (!t) return;
   sv('todoTitle', t.title);
   sv('todoDue', t.dueDate || '');
+  sv('todoStartTime', t.startTime || '');
+  sv('todoEndTime', t.endTime || '');
   document.getElementById('todoCatChips').innerHTML = DB.todoCats.map(c => {
     const isSel = c.id === t.catId;
     return `<button class="chip ${isSel?'sel':''}" style="color:${c.color};background:${isSel?hexAlpha(c.color,0.15):'var(--chip)'}" data-cat-id="${c.id}" onclick="selectChip(this,'todoCatChips')">${c.name}</button>`;
@@ -3086,17 +3094,37 @@ function openTodoEditModal(id) {
   openModal('m-todo');
 }
 
+function syncTodoToSchedule(t) {
+  // 기존 이 투두의 스케줄 항목 제거
+  DB.schedule = (DB.schedule || []).filter(s => s.todoId !== t.id);
+  // 날짜+시간이 있으면 스케줄에 추가
+  if (t.dueDate && t.startTime) {
+    const tcat = DB.todoCats.find(c => c.id === t.catId);
+    DB.schedule.push({
+      id: uid(), title: t.title, date: t.dueDate,
+      time: t.startTime, endTime: t.endTime || '',
+      color: tcat ? tcat.color : 'var(--primary)',
+      todoId: t.id
+    });
+  }
+}
+
 function saveTodo() {
   const title = v('todoTitle').trim();
   const catId = document.querySelector('#todoCatChips .chip.sel')?.dataset.catId;
   const dueDate = v('todoDue') || null;
+  const startTime = v('todoStartTime') || null;
+  const endTime = v('todoEndTime') || null;
   if (!title) return alert('please enter a task!');
   if (editTodoId) {
     const t = DB.todos.find(x => x.id === editTodoId);
-    if (t) { t.title = title; t.catId = catId || t.catId; t.dueDate = dueDate; }
+    if (t) { t.title = title; t.catId = catId || t.catId; t.dueDate = dueDate; t.startTime = startTime; t.endTime = endTime; }
+    if (t) syncTodoToSchedule(t);
     editTodoId = null;
   } else {
-    DB.todos.push({ id: uid(), title, catId: catId || DB.todoCats[0]?.id, dueDate, done: false });
+    const newTodo = { id: uid(), title, catId: catId || DB.todoCats[0]?.id, dueDate, startTime, endTime, done: false };
+    DB.todos.push(newTodo);
+    syncTodoToSchedule(newTodo);
   }
   saveDB(); closeModal('m-todo'); renderTodo(); updateHeader();
 }
@@ -3144,7 +3172,7 @@ function openRoutineModal() {
 
 function openTodoModal() {
   editTodoId = null;
-  sv('todoTitle',''); sv('todoDue','');
+  sv('todoTitle',''); sv('todoDue',''); sv('todoStartTime',''); sv('todoEndTime','');
   document.getElementById('todoCatChips').innerHTML = DB.todoCats.map((c,i) =>
     `<button class="chip ${i===0?'sel':''}" style="color:${c.color};background:${i===0?hexAlpha(c.color,0.15):'var(--chip)'}" data-cat-id="${c.id}" onclick="selectChip(this,'todoCatChips')">${c.name}</button>`
   ).join('');
