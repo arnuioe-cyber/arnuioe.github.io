@@ -2730,11 +2730,22 @@ function renderSchTimeline() {
   const schEvents = (DB.schedule || []).filter(e => e.date === schSelectedDate).map(e => ({
     title: e.title, time: e.time || '', endTime: e.endTime || '', color: e.color || 'var(--primary)', schId: e.id
   }));
-  const allEvents = [...calEvents, ...schEvents].filter(e => e.time);
+  const allEvents = [...calEvents, ...schEvents];
+  const timedEvents = allEvents.filter(e => e.time);
+  const allDayEvents = allEvents.filter(e => !e.time);
 
   const now = new Date();
   const isToday = schSelectedDate === todayStr();
   const nowMins = now.getHours() * 60 + now.getMinutes();
+
+  // all-day 이벤트 영역
+  const allDayHtml = allDayEvents.length ? `
+    <div style="padding:0 0 8px;display:flex;flex-wrap:wrap;gap:6px">
+      ${allDayEvents.map(e => {
+        const editFn = e.schId ? `openSchEditModal('${e.schId}')` : `editEventOccurrence('${e.evId}','${schSelectedDate}')`;
+        return `<div onclick="${editFn}" style="padding:5px 12px;border-radius:20px;background:${e.color};color:white;font-size:12px;font-weight:600;cursor:pointer">${e.title}</div>`;
+      }).join('')}
+    </div>` : '';
 
   // 시간 라벨 + 선 rows
   let rowsHtml = '';
@@ -2747,7 +2758,7 @@ function renderSchTimeline() {
   }
 
   // 이벤트 overlay
-  const eventsHtml = allEvents.map(e => {
+  const eventsHtml = timedEvents.map(e => {
     const [sh, sm] = e.time.split(':').map(Number);
     const startMins = sh * 60 + (sm || 0);
     let endMins = startMins + 60; // 기본 1시간
@@ -2777,11 +2788,16 @@ function renderSchTimeline() {
     <div style="flex:1;height:1.5px;background:var(--primary)"></div>
   </div>` : '';
 
-  document.getElementById('timeline').innerHTML = `
-    ${rowsHtml}
-    <div class="tl-events-overlay" style="position:absolute;top:0;left:70px;right:16px;height:${24*HOUR_H}px">
-      ${nowLine}
-      ${eventsHtml}
+  // allDay는 timeline 밖에, timed 타임라인은 별도 div로
+  const tlContainer = document.getElementById('timeline');
+  tlContainer.innerHTML = `
+    ${allDayHtml}
+    <div style="position:relative">
+      ${rowsHtml}
+      <div class="tl-events-overlay" style="position:absolute;top:0;left:70px;right:0;height:${24*HOUR_H}px">
+        ${nowLine}
+        ${eventsHtml}
+      </div>
     </div>`;
 }
 
