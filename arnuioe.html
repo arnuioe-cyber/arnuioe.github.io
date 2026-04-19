@@ -994,12 +994,17 @@ body.modal-open{overflow:hidden}
 <script>
 var _step = 'script-start';
 window.onerror = function(msg, src, line, col, err) {
+  // "Script error." = cross-origin iframe error or obscured async error — not our code, ignore
+  if (!msg || msg === 'Script error.' || msg === 'Script error') return true;
+  // Only show overlay for real errors with actual info
+  if (!line && !col && !err) return true;
   document.body.style.cssText = 'padding:20px;background:white;color:black;font-family:monospace';
   document.body.innerHTML = '<h3 style="color:red">JS Error</h3><p><b>Last step:</b> ' + _step + '</p><p>' + msg + '</p><p>Line: ' + line + ' Col: ' + col + '</p><p>Src: ' + (src||'inline') + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (err && err.stack ? err.stack : '(no stack)') + '</pre>';
   return true;
 };
 window.addEventListener('unhandledrejection', function(ev) {
   var r = ev.reason;
+  if (!r) return;
   document.body.style.cssText = 'padding:20px;background:white;color:black;font-family:monospace';
   document.body.innerHTML = '<h3 style="color:orange">Promise Error</h3><p><b>Last step:</b> ' + _step + '</p><p>' + (r && r.message ? r.message : String(r)) + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (r && r.stack ? r.stack : '(no stack)') + '</pre>';
 });
