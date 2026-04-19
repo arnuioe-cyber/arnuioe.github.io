@@ -1027,7 +1027,7 @@ function loadDB() {
       db.todoCats = def.todoCats;
     }
     return db;
-  } catch { return getDefaultDB(); }
+  } catch(e) { return getDefaultDB(); }
 }
 
 function saveDB() {
@@ -1536,7 +1536,7 @@ function renderEvPicker() {
 }
 
 function renderRepeatDayBtns() {
-  const type = document.getElementById('evRepeatType')?.value || 'weekly';
+  const _evRepType = document.getElementById('evRepeatType'); const type = (_evRepType && _evRepType.value) || 'weekly';
   const container = document.getElementById('evRepeatDayBtns');
   if (type === 'monthly' || type === 'yearly') { container.innerHTML = ''; return; }
   const labels = ['M','T','W','T','F','S','S'];
@@ -1556,7 +1556,7 @@ function toggleRepeatDay(val) {
 
 function saveEvent() {
   const title = v('evTitle');
-  const catId = document.querySelector('#evCatChips .chip.sel')?.dataset.catId;
+  const _evCatEl = document.querySelector('#evCatChips .chip.sel'); const catId = _evCatEl && _evCatEl.dataset.catId;
   const isPeriod = document.getElementById('evPeriodToggle').classList.contains('on');
   const isRepeat = document.getElementById('evRepeatToggle').classList.contains('on');
   const repeatType = isRepeat ? document.getElementById('evRepeatType').value : null;
@@ -1568,7 +1568,7 @@ function saveEvent() {
   if (!title || evPickerDates.size === 0) return alert('제목과 날짜를 선택해줘!');
 
   const dates = [...evPickerDates].sort();
-  const finalCatId = catId || DB.categories[0]?.id;
+  const finalCatId = catId || (DB.categories[0] && DB.categories[0].id);
 
   if (editEventId) {
     const ev = DB.events.find(x => x.id === editEventId);
@@ -3212,7 +3212,7 @@ function syncTodoToSchedule(t) {
 
 function saveTodo() {
   const title = v('todoTitle').trim();
-  const catId = document.querySelector('#todoCatChips .chip.sel')?.dataset.catId;
+  const _todoCatEl = document.querySelector('#todoCatChips .chip.sel'); const catId = _todoCatEl && _todoCatEl.dataset.catId;
   const dueDate = v('todoDue') || null;
   const startTime = v('todoStartTime') || null;
   const endTime = v('todoEndTime') || null;
@@ -3223,7 +3223,7 @@ function saveTodo() {
     if (t) syncTodoToSchedule(t);
     editTodoId = null;
   } else {
-    const newTodo = { id: uid(), title, catId: catId || DB.todoCats[0]?.id, dueDate, startTime, endTime, done: false };
+    const newTodo = { id: uid(), title, catId: catId || (DB.todoCats[0] && DB.todoCats[0].id), dueDate, startTime, endTime, done: false };
     DB.todos.push(newTodo);
     syncTodoToSchedule(newTodo);
   }
@@ -3464,7 +3464,7 @@ async function syncDownload() {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
-    const content = data.files?.['arnuioe_data.json']?.content;
+    const content = data.files && data.files['arnuioe_data.json'] && data.files['arnuioe_data.json'].content;
     if (!content) return msg.textContent = '⚠ 데이터를 찾을 수 없어';
     JSON.parse(content); // 유효성 검사
     localStorage.setItem('life_diary_v2', content);
@@ -3515,7 +3515,7 @@ function updateCalCatColor(id, color) {
 function deleteCalCat(id) {
   if (DB.categories.length <= 1) return;
   DB.categories = DB.categories.filter(c => c.id !== id);
-  DB.events.forEach(e => { if (e.catId === id) e.catId = DB.categories[0]?.id; });
+  DB.events.forEach(e => { if (e.catId === id) e.catId = DB.categories[0] && DB.categories[0].id; });
   if (selectedCatFilter === id) selectedCatFilter = null;
   saveDB(); renderCalCatList(); renderCalendar();
 }
@@ -3561,7 +3561,7 @@ function closeModal(id, e) {
     window.scrollTo(0, _scrollY);
   }
 }
-function v(id) { return document.getElementById(id)?.value || ''; }
+function v(id) { const el = document.getElementById(id); return (el && el.value) || ''; }
 function sv(id, val) { const el = document.getElementById(id); if(el) el.value = val; }
 
 function toggleEl(btn) {
