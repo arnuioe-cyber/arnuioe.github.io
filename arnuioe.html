@@ -3475,7 +3475,19 @@ async function syncDownload() {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
-    const content = data.files && data.files['arnuioe_data.json'] && data.files['arnuioe_data.json'].content;
+    const fileInfo = data.files && data.files['arnuioe_data.json'];
+    if (!fileInfo) return msg.textContent = '⚠ 데이터를 찾을 수 없어';
+    let content;
+    if (fileInfo.truncated && fileInfo.raw_url) {
+      // 파일이 너무 커서 API가 잘라서 줄 때 → raw_url로 전체 내용 직접 가져오기
+      msg.textContent = '큰 파일 다운로드 중...';
+      const rawRes = await fetch(fileInfo.raw_url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      content = await rawRes.text();
+    } else {
+      content = fileInfo.content;
+    }
     if (!content) return msg.textContent = '⚠ 데이터를 찾을 수 없어';
     try { JSON.parse(content); } catch(pe) {
       return msg.textContent = '⚠ Gist 데이터가 손상됐어. Upload로 덮어써줘!';
