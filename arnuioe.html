@@ -19,7 +19,7 @@
   --radius:14px;--radius-lg:20px;
   --shadow:0 2px 12px rgba(0,0,0,0.06);
 }
-html{height:100%;overflow:hidden}
+html{height:100%;overflow-x:hidden}
 body{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',sans-serif;display:flex;flex-direction:column;max-width:430px;margin:0 auto;overflow:hidden}
 body.modal-open{overflow:hidden}
 /* desktop scrollbar */
@@ -992,33 +992,39 @@ body.modal-open{overflow:hidden}
 </div>
 
 <script>
+var _step = 'script-start';
 window.onerror = function(msg, src, line, col, err) {
   document.body.style.cssText = 'padding:20px;background:white;color:black;font-family:monospace';
-  document.body.innerHTML = '<h3 style="color:red">JS Error</h3><p>' + msg + '</p><p>Line: ' + line + ' Col: ' + col + '</p><p>Src: ' + (src||'inline') + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (err && err.stack ? err.stack : '(no stack)') + '</pre>';
+  document.body.innerHTML = '<h3 style="color:red">JS Error</h3><p><b>Last step:</b> ' + _step + '</p><p>' + msg + '</p><p>Line: ' + line + ' Col: ' + col + '</p><p>Src: ' + (src||'inline') + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (err && err.stack ? err.stack : '(no stack)') + '</pre>';
   return true;
 };
 window.addEventListener('unhandledrejection', function(ev) {
   var r = ev.reason;
   document.body.style.cssText = 'padding:20px;background:white;color:black;font-family:monospace';
-  document.body.innerHTML = '<h3 style="color:orange">Promise Error</h3><p>' + (r && r.message ? r.message : String(r)) + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (r && r.stack ? r.stack : '(no stack)') + '</pre>';
+  document.body.innerHTML = '<h3 style="color:orange">Promise Error</h3><p><b>Last step:</b> ' + _step + '</p><p>' + (r && r.message ? r.message : String(r)) + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (r && r.stack ? r.stack : '(no stack)') + '</pre>';
 });
 // ══════════════════════════════════════════
 // 데이터 저장소 (localStorage)
 // ══════════════════════════════════════════
+_step = 'KEY-const';
 const KEY = 'life_diary_v2';
+_step = 'loadDB';
 let DB = loadDB();
+_step = 'loadDB-done';
 
 // 완료된 투두 하루 뒤 자동삭제
-(function autoCleanTodos() {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const before = DB.todos.length;
-  DB.todos = DB.todos.filter(t => {
-    if (!t.done || !t.completedAt) return true;
-    const comp = new Date(t.completedAt + 'T00:00:00');
-    return (today - comp) < 86400000; // 하루 미만이면 유지
-  });
-  if (DB.todos.length !== before) saveDB();
-})();
+try {
+  if (DB && DB.todos) {
+    var _today0 = new Date(); _today0.setHours(0,0,0,0);
+    var _before = DB.todos.length;
+    DB.todos = DB.todos.filter(function(t) {
+      if (!t.done || !t.completedAt) return true;
+      var comp = new Date(t.completedAt + 'T00:00:00');
+      return (_today0 - comp) < 86400000;
+    });
+    if (DB.todos.length !== _before) saveDB();
+  }
+} catch(e) {}
 
 function loadDB() {
   try {
@@ -1036,7 +1042,7 @@ function loadDB() {
 }
 
 function saveDB() {
-  localStorage.setItem(KEY, JSON.stringify(DB));
+  try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch(e) {}
 }
 
 function updateSyncStatus(state) {
@@ -1638,20 +1644,22 @@ function renderDietDateScroll() {
     </div>`;
   }
   document.getElementById('dietDateScroll').innerHTML = html;
-  setTimeout(() => {
-    const container = document.getElementById('dietDateScroll');
-    const selCell = container.querySelector('.today-sel');
-    if (selCell) {
-      const cellLeft = selCell.offsetLeft;
-      const cellWidth = selCell.offsetWidth;
-      const containerWidth = container.offsetWidth;
-      container.scrollLeft = cellLeft - (containerWidth / 2) + (cellWidth / 2);
-    } else {
-      // center today's cell
-      const allCells = container.querySelectorAll('.date-cell');
-      const todayCell = allCells[13]; // index 13 = today (i=0)
-      if (todayCell) container.scrollLeft = todayCell.offsetLeft - containerWidth / 2 + todayCell.offsetWidth / 2;
-    }
+  setTimeout(function() {
+    try {
+      var container = document.getElementById('dietDateScroll');
+      if (!container) return;
+      var selCell = container.querySelector('.today-sel');
+      if (selCell) {
+        var cellLeft = selCell.offsetLeft;
+        var cellWidth = selCell.offsetWidth;
+        var containerWidth = container.offsetWidth;
+        container.scrollLeft = cellLeft - (containerWidth / 2) + (cellWidth / 2);
+      } else {
+        var allCells = container.querySelectorAll('.date-cell');
+        var todayCell = allCells[13];
+        if (todayCell) container.scrollLeft = todayCell.offsetLeft - container.offsetWidth / 2 + todayCell.offsetWidth / 2;
+      }
+    } catch(e) {}
   }, 50);
 }
 
@@ -1766,30 +1774,18 @@ function renderFastingCard() {
   const startMs = new Date(f.startTime).getTime();
 
   function update() {
-    const elapsed = Date.now() - startMs;
-    const pct = Math.min(100, elapsed / goalMs * 100);
-    const elapsedH = Math.floor(elapsed / 3600000);
-    const elapsedM = Math.floor((elapsed % 3600000) / 60000);
-    const done = elapsed >= goalMs;
-    const color = done ? '#4CAF50' : 'var(--primary)';
-    const remH = Math.max(0, Math.floor((goalMs - elapsed) / 3600000));
-    const remM = Math.max(0, Math.floor(((goalMs - elapsed) % 3600000) / 60000));
-
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-size:12px;font-weight:600;color:var(--text-mid)">Fasting · ${f.goalHours}h goal</div>
-        <div style="display:flex;gap:10px">
-          <button onclick="openFastingModal()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--primary)">edit</button>
-          <button onclick="stopFasting()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-light)">stop</button>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
-        <div style="font-size:20px;font-weight:800;color:var(--text-dark);letter-spacing:-0.5px">${p2(elapsedH)}:${p2(elapsedM)}</div>
-        <div style="font-size:11px;color:${color};font-weight:600">${done ? 'Goal! 🎉' : `${remH}h ${remM}m left`}</div>
-      </div>
-      <div style="height:5px;background:var(--chip);border-radius:3px;overflow:hidden">
-        <div style="height:100%;width:${pct}%;background:${color};border-radius:3px"></div>
-      </div>`;
+    try {
+      var elapsed = Date.now() - startMs;
+      var pct = Math.min(100, elapsed / goalMs * 100);
+      var elapsedH = Math.floor(elapsed / 3600000);
+      var elapsedM = Math.floor((elapsed % 3600000) / 60000);
+      var done = elapsed >= goalMs;
+      var color = done ? '#4CAF50' : 'var(--primary)';
+      var remH = Math.max(0, Math.floor((goalMs - elapsed) / 3600000));
+      var remM = Math.max(0, Math.floor(((goalMs - elapsed) % 3600000) / 60000));
+      if (!card || !card.parentNode) { clearInterval(_fastingTimer); _fastingTimer = null; return; }
+      card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:var(--text-mid)">Fasting \u00b7 ' + f.goalHours + 'h goal</div><div style="display:flex;gap:10px"><button onclick="openFastingModal()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--primary)">edit</button><button onclick="stopFasting()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-light)">stop</button></div></div><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><div style="font-size:20px;font-weight:800;color:var(--text-dark);letter-spacing:-0.5px">' + p2(elapsedH) + ':' + p2(elapsedM) + '</div><div style="font-size:11px;color:' + color + ';font-weight:600">' + (done ? 'Goal! \uD83C\uDF89' : (remH + 'h ' + remM + 'm left')) + '</div></div><div style="height:5px;background:var(--chip);border-radius:3px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:3px"></div></div>';
+    } catch(e) { clearInterval(_fastingTimer); _fastingTimer = null; }
   }
 
   update();
@@ -2391,15 +2387,19 @@ function renderDiaryDateScroll() {
   const el = document.getElementById('diaryDateScroll');
   if (!el) return;
   el.innerHTML = html;
-  setTimeout(() => {
-    const selCell = el.querySelector('.today-sel');
-    if (selCell) {
-      el.scrollLeft = selCell.offsetLeft - el.clientWidth / 2 + selCell.offsetWidth / 2;
-    } else {
-      const allCells = el.querySelectorAll('.date-cell');
-      const todayCell = allCells[13];
-      if (todayCell) el.scrollLeft = todayCell.offsetLeft - el.clientWidth / 2 + todayCell.offsetWidth / 2;
-    }
+  setTimeout(function() {
+    try {
+      var elRef = document.getElementById('diaryDateScroll');
+      if (!elRef) return;
+      var selCell = elRef.querySelector('.today-sel');
+      if (selCell) {
+        elRef.scrollLeft = selCell.offsetLeft - elRef.clientWidth / 2 + selCell.offsetWidth / 2;
+      } else {
+        var allCells = elRef.querySelectorAll('.date-cell');
+        var todayCell = allCells[13];
+        if (todayCell) elRef.scrollLeft = todayCell.offsetLeft - elRef.clientWidth / 2 + todayCell.offsetWidth / 2;
+      }
+    } catch(e) {}
   }, 50);
 }
 
@@ -2440,14 +2440,12 @@ function renderDiary() {
       const ph = document.getElementById(pid);
       const fr = document.getElementById(fid);
       let loaded = false;
-      fr.addEventListener('load', () => {
-        loaded = true;
-        if (ph) ph.style.display = 'none';
-        fr.style.display = 'block';
+      fr.addEventListener('load', function() {
+        try { loaded = true; if (ph) ph.style.display = 'none'; fr.style.display = 'block'; } catch(e) {}
       });
       // if still loading after 4s, fall back to link card
-      setTimeout(() => {
-        if (!loaded) renderAppleLinkCard(appleBodyEl, appleLink);
+      setTimeout(function() {
+        try { if (!loaded) renderAppleLinkCard(appleBodyEl, appleLink); } catch(e) {}
       }, 4000);
     } else {
       renderAppleLinkCard(appleBodyEl, appleLink);
@@ -2796,10 +2794,13 @@ function renderSchedule() {
   }
   document.getElementById('dateScroll').innerHTML = dateHtml;
   // 선택된 셀 가운데로
-  setTimeout(() => {
-    const dc = document.getElementById('dateScroll');
-    const sel = dc.querySelector('.today-sel');
-    if (sel) dc.scrollLeft = sel.offsetLeft - dc.clientWidth / 2 + sel.offsetWidth / 2;
+  setTimeout(function() {
+    try {
+      var dc = document.getElementById('dateScroll');
+      if (!dc) return;
+      var sel = dc.querySelector('.today-sel');
+      if (sel) dc.scrollLeft = sel.offsetLeft - dc.clientWidth / 2 + sel.offsetWidth / 2;
+    } catch(e) {}
   }, 50);
 
   renderSchTimeline();
@@ -3617,16 +3618,17 @@ function updateClock() {}
 // INIT
 // ══════════════════════════════════════════
 try {
-  updateClock();
-  setInterval(updateClock, 30000);
-  initColorPicker();
-  updateHeader();
-  renderCalendar();
-  renderDiary();
-  renderTodo();
+  _step = 'updateClock'; updateClock();
+  _step = 'setInterval-clock'; setInterval(updateClock, 30000);
+  _step = 'initColorPicker'; initColorPicker();
+  _step = 'updateHeader'; updateHeader();
+  _step = 'renderCalendar'; renderCalendar();
+  _step = 'renderDiary'; renderDiary();
+  _step = 'renderTodo'; renderTodo();
+  _step = 'init-done';
 } catch(initErr) {
   document.body.style.cssText = 'padding:20px;background:white;color:black;font-family:monospace';
-  document.body.innerHTML = '<h3 style="color:red">Init Error</h3><p>' + initErr.message + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (initErr.stack || '(no stack)') + '</pre>';
+  document.body.innerHTML = '<h3 style="color:red">Init Error @ ' + _step + '</h3><p>' + initErr.message + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (initErr.stack || '(no stack)') + '</pre>';
 }
 
 // ── 반복일정 삭제 ──
@@ -3648,7 +3650,7 @@ function importData(e) {
     try {
       _importParsed = JSON.parse(ev.target.result);
       document.getElementById('m-import-choice').classList.add('open');
-    } catch {
+    } catch(e) {
       document.getElementById('importMsg').textContent = '⚠ 파일이 올바르지 않아요.';
     }
   };
