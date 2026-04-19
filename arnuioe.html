@@ -3480,10 +3480,9 @@ async function syncDownload() {
     let content;
     if (fileInfo.truncated && fileInfo.raw_url) {
       // 파일이 너무 커서 API가 잘라서 줄 때 → raw_url로 전체 내용 직접 가져오기
+      // raw_url에는 임시 토큰이 포함돼 있어서 Authorization 헤더 불필요 (CORS 문제 방지)
       msg.textContent = '큰 파일 다운로드 중...';
-      const rawRes = await fetch(fileInfo.raw_url, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const rawRes = await fetch(fileInfo.raw_url);
       content = await rawRes.text();
     } else {
       content = fileInfo.content;
