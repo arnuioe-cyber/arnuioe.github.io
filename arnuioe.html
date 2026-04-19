@@ -993,10 +993,15 @@ body.modal-open{overflow:hidden}
 
 <script>
 window.onerror = function(msg, src, line, col, err) {
-  document.body.style.cssText = 'padding:20px;background:white;color:black';
-  document.body.innerHTML = '<h3 style="color:red">JS Error</h3><p>' + msg + '</p><p>Line: ' + line + '</p><pre style="font-size:11px;white-space:pre-wrap">' + (err && err.stack ? err.stack : '') + '</pre>';
+  document.body.style.cssText = 'padding:20px;background:white;color:black;font-family:monospace';
+  document.body.innerHTML = '<h3 style="color:red">JS Error</h3><p>' + msg + '</p><p>Line: ' + line + ' Col: ' + col + '</p><p>Src: ' + (src||'inline') + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (err && err.stack ? err.stack : '(no stack)') + '</pre>';
   return true;
 };
+window.addEventListener('unhandledrejection', function(ev) {
+  var r = ev.reason;
+  document.body.style.cssText = 'padding:20px;background:white;color:black;font-family:monospace';
+  document.body.innerHTML = '<h3 style="color:orange">Promise Error</h3><p>' + (r && r.message ? r.message : String(r)) + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (r && r.stack ? r.stack : '(no stack)') + '</pre>';
+});
 // ══════════════════════════════════════════
 // 데이터 저장소 (localStorage)
 // ══════════════════════════════════════════
@@ -3466,10 +3471,12 @@ async function syncDownload() {
     const data = await res.json();
     const content = data.files && data.files['arnuioe_data.json'] && data.files['arnuioe_data.json'].content;
     if (!content) return msg.textContent = '⚠ 데이터를 찾을 수 없어';
-    JSON.parse(content); // 유효성 검사
+    try { JSON.parse(content); } catch(pe) {
+      return msg.textContent = '⚠ Gist 데이터가 손상됐어. Upload로 덮어써줘!';
+    }
     localStorage.setItem('life_diary_v2', content);
     msg.textContent = '✓ 다운로드 완료! 새로고침할게요.';
-    setTimeout(() => location.reload(), 1200);
+    setTimeout(function() { location.reload(); }, 1200);
   } catch(e) { msg.textContent = '⚠ 오류: ' + e.message; }
 }
 
@@ -3609,13 +3616,18 @@ function updateClock() {}
 // ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
-updateClock();
-setInterval(updateClock, 30000);
-initColorPicker();
-updateHeader();
-renderCalendar();
-renderDiary();
-renderTodo();
+try {
+  updateClock();
+  setInterval(updateClock, 30000);
+  initColorPicker();
+  updateHeader();
+  renderCalendar();
+  renderDiary();
+  renderTodo();
+} catch(initErr) {
+  document.body.style.cssText = 'padding:20px;background:white;color:black;font-family:monospace';
+  document.body.innerHTML = '<h3 style="color:red">Init Error</h3><p>' + initErr.message + '</p><pre style="font-size:11px;white-space:pre-wrap;background:#f5f5f5;padding:8px;margin-top:8px">' + (initErr.stack || '(no stack)') + '</pre>';
+}
 
 // ── 반복일정 삭제 ──
 function exportData() {
