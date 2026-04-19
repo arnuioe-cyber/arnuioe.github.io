@@ -366,6 +366,15 @@ body.modal-open{overflow:hidden}
       <div style="height:20px"></div>
       <div id="mealSections"></div>
       <div style="height:20px"></div>
+      <!-- 단식 히스토리 -->
+      <div style="margin:0 16px 4px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:14px;font-weight:700;color:var(--text-dark)">Fasting History</div>
+          <button onclick="openFastingHistModal(null)" style="background:var(--primary);color:white;border:none;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer">+ add</button>
+        </div>
+        <div id="fastingHistory"></div>
+      </div>
+      <div style="height:40px"></div>
     </div>
   </div>
 
@@ -588,6 +597,28 @@ body.modal-open{overflow:hidden}
     <div class="modal-label">Start Time</div>
     <input class="input" type="datetime-local" id="fastStartInput" style="margin-bottom:16px">
     <button class="btn-primary" onclick="startFasting()">Start Fasting</button>
+  </div>
+</div>
+
+<!-- 단식 기록 추가/수정 모달 -->
+<div class="modal-overlay" id="m-fasting-hist" onclick="closeModal('m-fasting-hist',event)">
+  <div class="modal-sheet">
+    <div class="modal-title" id="fastHistTitle">Fasting Record</div>
+    <div class="modal-label">Date</div>
+    <input class="input" type="date" id="fastHistDate" style="margin-bottom:12px">
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <div style="flex:1">
+        <div class="modal-label">Start Time</div>
+        <input class="input" type="time" id="fastHistStart">
+      </div>
+      <div style="flex:1">
+        <div class="modal-label">End Time</div>
+        <input class="input" type="time" id="fastHistEnd">
+      </div>
+    </div>
+    <div class="modal-label">Goal Hours</div>
+    <input class="input" type="number" id="fastHistGoal" min="1" max="72" placeholder="16" style="margin-bottom:20px">
+    <button class="btn-primary" onclick="saveFastingHist()">save</button>
   </div>
 </div>
 
@@ -1026,6 +1057,7 @@ function getDefaultDB() {
     calorieGoal: 1800,
     water: {},          // date -> L
     fasting: { startTime: null, goalHours: 16, active: false },
+    fastingHistory: [],
     diary: {},          // date -> { ootd, cam, finances[], tp, fw, vlogs[] }
     schedule: [],       // { id, title, startHour, endHour, color, date }
     routines: [
@@ -1621,6 +1653,7 @@ function selectDietDate(ds) {
 function renderDiet() {
   renderDietDateScroll();
   renderFastingCard();
+  renderFastingHistory();
   const date = dietSelectedDate;
   const meals = DB.meals.filter(m => m.date === date);
   const total = meals.reduce((s,m) => s + (m.cal||0), 0);
@@ -1784,11 +1817,113 @@ function startFasting() {
 
 function stopFasting() {
   if (!confirm('단식을 종료할까?')) return;
+  const f = DB.fasting;
+  if (f && f.active && f.startTime) {
+    const endISO = new Date().toISOString();
+    const start = new Date(f.startTime);
+    const end = new Date(endISO);
+    const durationMin = Math.round((end - start) / 60000);
+    if (!DB.fastingHistory) DB.fastingHistory = [];
+    DB.fastingHistory.push({
+      id: uid(), date: localDateStr(start),
+      startTime: f.startTime, endTime: endISO,
+      goalHours: f.goalHours || 16, durationMin
+    });
+  }
   DB.fasting.active = false;
   DB.fasting.startTime = null;
   saveDB();
   if (_fastingTimer) { clearInterval(_fastingTimer); _fastingTimer = null; }
   renderFastingCard();
+  renderFastingHistory();
+}
+
+let _editFastHistId = null;
+function openFastingHistModal(id) {
+  _editFastHistId = id;
+  document.getElementById('fastHistTitle').textContent = id ? 'Edit Record' : 'Fasting Record';
+  if (id) {
+    const r = (DB.fastingHistory || []).find(x => x.id === id);
+    if (!r) return;
+    document.getElementById('fastHistDate').value = r.date || '';
+    const s = r.startTime ? new Date(r.startTime) : null;
+    const e = r.endTime   ? new Date(r.endTime)   : null;
+    document.getElementById('fastHistStart').value = s ? p2(s.getHours())+':'+p2(s.getMinutes()) : '';
+    document.getElementById('fastHistEnd').value   = e ? p2(e.getHours())+':'+p2(e.getMinutes()) : '';
+    document.getElementById('fastHistGoal').value  = r.goalHours || 16;
+  } else {
+    document.getElementById('fastHistDate').value  = dietSelectedDate;
+    document.getElementById('fastHistStart').value = '';
+    document.getElementById('fastHistEnd').value   = '';
+    document.getElementById('fastHistGoal').value  = DB.fasting?.goalHours || 16;
+  }
+  openModal('m-fasting-hist');
+}
+function saveFastingHist() {
+  const date  = document.getElementById('fastHistDate').value;
+  const start = document.getElementById('fastHistStart').value;
+  const end   = document.getElementById('fastHistEnd').value;
+  const goal  = parseInt(document.getElementById('fastHistGoal').value) || 16;
+  if (!date) return alert('날짜를 입력해줘!');
+  const startISO = start ? new Date(date + 'T' + start + ':00').toISOString() : null;
+  let endISO = end ? new Date(date + 'T' + end + ':00').toISOString() : null;
+  // 종료가 시작보다 이르면 다음날로 처리
+  if (startISO && endISO && endISO < startISO) {
+    const d = new Date(date + 'T' + end + ':00');
+    d.setDate(d.getDate() + 1);
+    endISO = d.toISOString();
+  }
+  const durationMin = (startISO && endISO) ? Math.round((new Date(endISO) - new Date(startISO)) / 60000) : 0;
+  if (!DB.fastingHistory) DB.fastingHistory = [];
+  if (_editFastHistId) {
+    const r = DB.fastingHistory.find(x => x.id === _editFastHistId);
+    if (r) { r.date = date; r.startTime = startISO; r.endTime = endISO; r.goalHours = goal; r.durationMin = durationMin; }
+  } else {
+    DB.fastingHistory.push({ id: uid(), date, startTime: startISO, endTime: endISO, goalHours: goal, durationMin });
+  }
+  saveDB();
+  closeModal('m-fasting-hist');
+  renderFastingHistory();
+}
+function delFastingHist(id) {
+  if (!confirm('이 기록을 삭제할까?')) return;
+  DB.fastingHistory = (DB.fastingHistory || []).filter(x => x.id !== id);
+  saveDB();
+  renderFastingHistory();
+}
+function renderFastingHistory() {
+  const el = document.getElementById('fastingHistory');
+  if (!el) return;
+  const history = (DB.fastingHistory || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+  if (!history.length) {
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-light);font-size:13px">기록이 없어요</div>';
+    return;
+  }
+  el.innerHTML = history.map(r => {
+    const s = r.startTime ? new Date(r.startTime) : null;
+    const e = r.endTime   ? new Date(r.endTime)   : null;
+    const h = Math.floor((r.durationMin||0) / 60);
+    const m = (r.durationMin||0) % 60;
+    const dur = h + 'h' + (m ? ' ' + m + 'm' : '');
+    const sStr = s ? p2(s.getHours())+':'+p2(s.getMinutes()) : '--:--';
+    const eStr = e ? p2(e.getHours())+':'+p2(e.getMinutes()) : '--:--';
+    const pct = Math.min(100, Math.round((r.durationMin||0) / ((r.goalHours||16)*60) * 100));
+    const barColor = pct >= 100 ? '#4caf50' : 'var(--primary)';
+    return `<div style="background:var(--surface);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:13px;font-weight:700;color:var(--text-dark)">${fmtDate(r.date)}</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span style="font-size:11px;font-weight:700;color:${barColor}">${dur} / ${r.goalHours}h</span>
+          <button onclick="openFastingHistModal('${r.id}')" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--text-light);padding:2px 4px">✏️</button>
+          <button onclick="delFastingHist('${r.id}')" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-light);padding:2px 4px;line-height:1">×</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:6px">${sStr} → ${eStr}</div>
+      <div style="height:4px;background:var(--chip);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px;transition:width .4s"></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function openMealModal(type, label) {
