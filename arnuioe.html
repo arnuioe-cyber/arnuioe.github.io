@@ -362,18 +362,12 @@ body.modal-open{overflow:hidden}
         </div>
       </div>
       <div style="height:12px"></div>
-      <div id="fastingCard" style="margin:0 16px 4px;background:var(--bg);border-radius:var(--radius-lg);padding:14px 18px;border:1.5px solid var(--divider)"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin:0 16px 4px">
+        <div id="fastingCard" style="flex:1;background:var(--bg);border-radius:var(--radius-lg);padding:14px 18px;border:1.5px solid var(--divider)"></div>
+        <button onclick="openFastingHistView()" style="width:38px;height:38px;border-radius:12px;background:var(--chip);border:none;cursor:pointer;font-size:18px;color:var(--text-mid);display:flex;align-items:center;justify-content:center;flex-shrink:0">☰</button>
+      </div>
       <div style="height:20px"></div>
       <div id="mealSections"></div>
-      <div style="height:20px"></div>
-      <!-- 단식 히스토리 -->
-      <div style="margin:0 16px 4px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:14px;font-weight:700;color:var(--text-dark)">Fasting History</div>
-          <button onclick="openFastingHistModal(null)" style="background:var(--primary);color:white;border:none;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer">+ add</button>
-        </div>
-        <div id="fastingHistory"></div>
-      </div>
       <div style="height:40px"></div>
     </div>
   </div>
@@ -600,21 +594,32 @@ body.modal-open{overflow:hidden}
   </div>
 </div>
 
+<!-- 단식 히스토리 뷰 모달 -->
+<div class="modal-overlay" id="m-fasting-view" onclick="closeModal('m-fasting-view',event)">
+  <div class="modal-sheet" style="padding:0;display:flex;flex-direction:column;overflow:hidden;max-height:90vh">
+    <div style="padding:20px 24px 12px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+      <div class="modal-title" style="margin-bottom:0">Fasting History</div>
+      <button onclick="openFastingHistModal(null)" style="background:var(--primary);color:white;border:none;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer">+ add</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:0 24px 24px">
+      <div id="fastingHistory"></div>
+    </div>
+  </div>
+</div>
+
 <!-- 단식 기록 추가/수정 모달 -->
 <div class="modal-overlay" id="m-fasting-hist" onclick="closeModal('m-fasting-hist',event)">
   <div class="modal-sheet">
     <div class="modal-title" id="fastHistTitle">Fasting Record</div>
-    <div class="modal-label">Date</div>
-    <input class="input" type="date" id="fastHistDate" style="margin-bottom:12px">
-    <div style="display:flex;gap:10px;margin-bottom:12px">
-      <div style="flex:1">
-        <div class="modal-label">Start Time</div>
-        <input class="input" type="time" id="fastHistStart">
-      </div>
-      <div style="flex:1">
-        <div class="modal-label">End Time</div>
-        <input class="input" type="time" id="fastHistEnd">
-      </div>
+    <div class="modal-label">Start</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input class="input" type="date" id="fastHistStartDate" style="flex:1">
+      <input class="input" type="time" id="fastHistStartTime" style="flex:1">
+    </div>
+    <div class="modal-label">End</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input class="input" type="date" id="fastHistEndDate" style="flex:1">
+      <input class="input" type="time" id="fastHistEndTime" style="flex:1">
     </div>
     <div class="modal-label">Goal Hours</div>
     <input class="input" type="number" id="fastHistGoal" min="1" max="72" placeholder="16" style="margin-bottom:20px">
@@ -1653,7 +1658,6 @@ function selectDietDate(ds) {
 function renderDiet() {
   renderDietDateScroll();
   renderFastingCard();
-  renderFastingHistory();
   const date = dietSelectedDate;
   const meals = DB.meals.filter(m => m.date === date);
   const total = meals.reduce((s,m) => s + (m.cal||0), 0);
@@ -1839,47 +1843,48 @@ function stopFasting() {
 }
 
 let _editFastHistId = null;
+function openFastingHistView() {
+  renderFastingHistory();
+  openModal('m-fasting-view');
+}
 function openFastingHistModal(id) {
   _editFastHistId = id;
   document.getElementById('fastHistTitle').textContent = id ? 'Edit Record' : 'Fasting Record';
   if (id) {
     const r = (DB.fastingHistory || []).find(x => x.id === id);
     if (!r) return;
-    document.getElementById('fastHistDate').value = r.date || '';
     const s = r.startTime ? new Date(r.startTime) : null;
     const e = r.endTime   ? new Date(r.endTime)   : null;
-    document.getElementById('fastHistStart').value = s ? p2(s.getHours())+':'+p2(s.getMinutes()) : '';
-    document.getElementById('fastHistEnd').value   = e ? p2(e.getHours())+':'+p2(e.getMinutes()) : '';
-    document.getElementById('fastHistGoal').value  = r.goalHours || 16;
+    document.getElementById('fastHistStartDate').value = s ? localDateStr(s) : (r.date || '');
+    document.getElementById('fastHistStartTime').value = s ? p2(s.getHours())+':'+p2(s.getMinutes()) : '';
+    document.getElementById('fastHistEndDate').value   = e ? localDateStr(e) : '';
+    document.getElementById('fastHistEndTime').value   = e ? p2(e.getHours())+':'+p2(e.getMinutes()) : '';
+    document.getElementById('fastHistGoal').value      = r.goalHours || 16;
   } else {
-    document.getElementById('fastHistDate').value  = dietSelectedDate;
-    document.getElementById('fastHistStart').value = '';
-    document.getElementById('fastHistEnd').value   = '';
-    document.getElementById('fastHistGoal').value  = DB.fasting?.goalHours || 16;
+    document.getElementById('fastHistStartDate').value = dietSelectedDate;
+    document.getElementById('fastHistStartTime').value = '';
+    document.getElementById('fastHistEndDate').value   = '';
+    document.getElementById('fastHistEndTime').value   = '';
+    document.getElementById('fastHistGoal').value      = (DB.fasting && DB.fasting.goalHours) || 16;
   }
   openModal('m-fasting-hist');
 }
 function saveFastingHist() {
-  const date  = document.getElementById('fastHistDate').value;
-  const start = document.getElementById('fastHistStart').value;
-  const end   = document.getElementById('fastHistEnd').value;
-  const goal  = parseInt(document.getElementById('fastHistGoal').value) || 16;
-  if (!date) return alert('날짜를 입력해줘!');
-  const startISO = start ? new Date(date + 'T' + start + ':00').toISOString() : null;
-  let endISO = end ? new Date(date + 'T' + end + ':00').toISOString() : null;
-  // 종료가 시작보다 이르면 다음날로 처리
-  if (startISO && endISO && endISO < startISO) {
-    const d = new Date(date + 'T' + end + ':00');
-    d.setDate(d.getDate() + 1);
-    endISO = d.toISOString();
-  }
+  const startDate = document.getElementById('fastHistStartDate').value;
+  const startTime = document.getElementById('fastHistStartTime').value;
+  const endDate   = document.getElementById('fastHistEndDate').value;
+  const endTime   = document.getElementById('fastHistEndTime').value;
+  const goal      = parseInt(document.getElementById('fastHistGoal').value) || 16;
+  if (!startDate) return alert('시작 날짜를 입력해줘!');
+  const startISO = startTime ? new Date(startDate + 'T' + startTime + ':00').toISOString() : null;
+  const endISO   = (endDate && endTime) ? new Date(endDate + 'T' + endTime + ':00').toISOString() : null;
   const durationMin = (startISO && endISO) ? Math.round((new Date(endISO) - new Date(startISO)) / 60000) : 0;
   if (!DB.fastingHistory) DB.fastingHistory = [];
   if (_editFastHistId) {
     const r = DB.fastingHistory.find(x => x.id === _editFastHistId);
-    if (r) { r.date = date; r.startTime = startISO; r.endTime = endISO; r.goalHours = goal; r.durationMin = durationMin; }
+    if (r) { r.date = startDate; r.startTime = startISO; r.endTime = endISO; r.goalHours = goal; r.durationMin = durationMin; }
   } else {
-    DB.fastingHistory.push({ id: uid(), date, startTime: startISO, endTime: endISO, goalHours: goal, durationMin });
+    DB.fastingHistory.push({ id: uid(), date: startDate, startTime: startISO, endTime: endISO, goalHours: goal, durationMin });
   }
   saveDB();
   closeModal('m-fasting-hist');
